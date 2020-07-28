@@ -14,6 +14,16 @@ public class StandardGate extends Component {
 
     private final Gate gate;
 
+    public QMeter getqMeter() {
+        return qMeter;
+    }
+
+    public void setqMeter(QMeter qMeter) {
+        this.qMeter = qMeter;
+    }
+
+    private QMeter qMeter;
+
     public StandardGate(int row, int col, int span, Gate gate) {
         super(row, col, span);
         this.gate = gate;
@@ -37,6 +47,15 @@ public class StandardGate extends Component {
         graphicsContext.setTextBaseline(VPos.CENTER);
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillText(gate.getClass().getSimpleName(), x + width / 2.0, y + height / 2.0);
+
+        // Draw connection
+        if (qMeter != null) {
+            double targetY = Circuit.getYFromRow(qMeter.getRow()) + Circuit.boxHeight / 2.0;
+
+            graphicsContext.setStroke(Color.BLACK);
+            graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 - 2.5, y, x + Circuit.boxWidth / 2.0 - 2.5, targetY);
+            graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 + 2.5, y, x + Circuit.boxWidth / 2.0 + 2.5, targetY);
+        }
 
     }
 }

@@ -4,6 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.qxn.gates.H;
+import org.qxn.gates.X;
 
 public class Circuit {
 
@@ -33,10 +34,12 @@ public class Circuit {
         this.components[0][0] = new StandardGate(0, 0, 1, new H(0));
         this.components[0][1] = new CNOTGate(0, 1);
         this.components[1][2] = new SWAPGate(1, 2);
-        this.components[2][1] = new QMeter(2, 1);
+        this.components[1][3] = new QMeter(1, 3);
+        StandardGate xConnected = new StandardGate(2, 5, 1, new X(2));
+        xConnected.setqMeter((QMeter) this.components[1][3]);
+        this.components[2][5] = xConnected;
 
-
-        select(0, 0);
+                select(0, 0);
     }
 
     public static final int maxGates = 10;

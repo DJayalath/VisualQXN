@@ -27,5 +27,8 @@ public class QMeter extends Component {
         graphicsContext.strokeArc(x + 5, y + height / 2.0, width - 10, 20, 0, 160, ArcType.OPEN);
         graphicsContext.strokeLine(x + width / 2.0 - 5 + 5, y + height / 2.0 + 10, x + width / 2.0 + 5 + 5, y + height / 2.0 - 10);
 
+        // Classical line
+        graphicsContext.strokeLine(x + width, y + height / 2.0 + 5, Circuit.colDist + (Circuit.boxWidth + Circuit.colDist) * Circuit.maxGates, y + height / 2.0 + 5);
+
     }
 }
