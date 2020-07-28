@@ -61,7 +61,7 @@ public class View extends Application {
         Canvas circuitDrawing = new Canvas();
 
         circuitDrawing.setWidth(600);
-        circuitDrawing.setHeight(250);
+        circuitDrawing.setHeight(200);
 
         GraphicsContext gc = circuitDrawing.getGraphicsContext2D();
 
@@ -148,21 +148,9 @@ public class View extends Application {
 
         centrePane.setPadding(new Insets(20));
         // Bar chart
-        final CategoryAxis xAxis = new CategoryAxis();
-        final NumberAxis yAxis = new NumberAxis();
-        final BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        xAxis.setLabel("Output");
-        yAxis.setLabel("Probability");
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("001", 0.5));
-
-        barChart.getData().add(series);
-        barChart.setLegendVisible(false);
-        barChart.setPrefWidth(600);
 
 //        centrePane.add(barChart, 0, 0);
-        leftPane.add(barChart, 1, 1);
+        leftPane.add(circuitController.getBarChart(), 1, 1);
 
         Group group = new Group();
 
@@ -218,7 +206,7 @@ public class View extends Application {
 
         Button run = new Button("-->");
         run.setMaxWidth(Double.MAX_VALUE);
-        run.setOnMouseClicked(event -> circuitController.run(barChart));
+        run.setOnMouseClicked(event -> circuitController.execute());
 
         Button addWire = new Button("Q+");
         addWire.setMaxWidth(Double.MAX_VALUE);
@@ -231,6 +219,23 @@ public class View extends Application {
         connect.setMaxWidth(Double.MAX_VALUE);
         connect.setOnMouseClicked(event -> circuitController.connect());
 
+        Button breakPoint = new Button("BP");
+        breakPoint.setMaxWidth(Double.MAX_VALUE);
+        breakPoint.setOnMouseClicked(event -> {
+            try {
+                circuitController.addGate(new VGate("BP", circuitController.getSelectedX(), circuitController.getSelectedY(), circuitController.getNumWires()));
+            } catch (CircuitPlacementException e) {
+                e.printStackTrace();
+            }
+        });
+
+        Button stepForward = new Button("STEP FWD");
+        stepForward.setMaxWidth(Double.MAX_VALUE);
+        stepForward.setOnMouseClicked(event -> circuitController.stepForward());
+
+        Button stepBackward = new Button("STEP BWD");
+        stepBackward.setMaxWidth(Double.MAX_VALUE);
+        stepBackward.setOnMouseClicked(event -> circuitController.stepBackward());
 
         buttonPane.add(add, 0, 0);
         buttonPane.add(remove, 0, 1);
@@ -238,6 +243,9 @@ public class View extends Application {
         buttonPane.add(addWire, 0, 3);
         buttonPane.add(removeWire, 0, 4);
         buttonPane.add(connect, 0, 5);
+        buttonPane.add(breakPoint, 0, 6);
+        buttonPane.add(stepForward, 0, 7);
+        buttonPane.add(stepBackward, 0, 8);
 
         Scene scene = new Scene(rootPane);
         stage.setScene(scene);

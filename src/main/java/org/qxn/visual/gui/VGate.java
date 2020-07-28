@@ -73,8 +73,11 @@ public class VGate{
         double width = gateHeight;
 
         switch (label) {
+            case "BP":
+                graphicsContext.setStroke(Color.RED);
+                graphicsContext.strokeLine(xx,CircuitController.TOP_PADDING,xx,CircuitController.TOP_PADDING + (span - 1) * CircuitController.LINE_GAP);
+                break;
             case "M":
-
                 graphicsContext.setStroke(Color.BLACK);
                 graphicsContext.setFill(Color.WHITE);
                 graphicsContext.setFont(new Font("Arial", 32 - (label.length() - 1) * (7 - span)));
@@ -98,11 +101,11 @@ public class VGate{
             case "SWAP":
                 graphicsContext.setStroke(Color.BLACK);
                 graphicsContext.setFill(Color.BLACK);
-                graphicsContext.strokeLine(xx - 10, yy - 10, xx + 10, yy + 10);
-                graphicsContext.strokeLine(xx + 10, yy - 10, xx - 10, yy + 10);
+                graphicsContext.strokeLine(xx - 5, yy - 5, xx + 5, yy + 5);
+                graphicsContext.strokeLine(xx + 5, yy - 5, xx - 5, yy + 5);
                 graphicsContext.strokeLine(xx, yy, xx, yy + CircuitController.LINE_GAP);
-                graphicsContext.strokeLine(xx - 10, yy + CircuitController.LINE_GAP - 10, xx + 10, yy + CircuitController.LINE_GAP + 10);
-                graphicsContext.strokeLine(xx + 10, yy + CircuitController.LINE_GAP - 10, xx - 10, yy + CircuitController.LINE_GAP + 10);
+                graphicsContext.strokeLine(xx - 5, yy + CircuitController.LINE_GAP - 5, xx + 5, yy + CircuitController.LINE_GAP + 5);
+                graphicsContext.strokeLine(xx + 5, yy + CircuitController.LINE_GAP - 5, xx - 5, yy + CircuitController.LINE_GAP + 5);
                 break;
             default:
 
@@ -122,7 +125,6 @@ public class VGate{
 
         // Draw connection
         if (connected != null) {
-
             int connectX = connected.getGridX();
             int connectY = connected.getGridY();
 
@@ -134,23 +136,6 @@ public class VGate{
             double xEnd = CircuitController.LEFT_PADDING + gridX * CircuitController.GRID_GAP;
             double h = Math.abs(connectY - gridY) * CircuitController.LINE_GAP - gateHeight / 2.0 + 4;
             graphicsContext.strokeRect(xEnd, CircuitController.TOP_PADDING + connectY * CircuitController.LINE_GAP - 4, 4, h);
-
-//            double xStart = CircuitController.LEFT_PADDING + gridX * CircuitController.GRID_GAP;
-//            double xEnd = CircuitController.LEFT_PADDING + connectX * CircuitController.GRID_GAP;
-//
-//            // ONLY APPLYABLE FROM ABOVE AND BEFORE!
-//
-//            // It is above
-//            if (connectY < gridY) {
-//                graphicsContext.strokeRect(xEnd, CircuitController.TOP_PADDING + ((gridY + connectY) / 2.0) * CircuitController.LINE_GAP, Math.abs(gridY - connectY) * CircuitController.LINE_GAP, 4);
-//
-//
-//                double yStart = CircuitController.TOP_PADDING + connectY * CircuitController.LINE_GAP + gateHeight / 2.0;
-//                double h = CircuitController.LINE_GAP / 2.0 - gateHeight / 2.0;
-//                graphicsContext.strokeRect(xEnd, yStart, 4, h);
-//                double yMid = CircuitController.TOP_PADDING + (connectY + 0.5) * CircuitController.LINE_GAP;
-//                graphicsContext.strokeRect(xStart, yMid, 4, h);
-//            }
         }
 
     }

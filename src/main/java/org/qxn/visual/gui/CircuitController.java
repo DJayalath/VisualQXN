@@ -2,19 +2,27 @@ package org.qxn.visual.gui;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.paint.Color;
 import org.qxn.QuantumMachine;
 import org.qxn.gates.*;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 public class CircuitController {
 
     public static final double LEFT_PADDING = 26;
-    public static final double TOP_PADDING = 30;
+    public static final double TOP_PADDING = 50;
     public static final double LINE_GAP = 60;
     public static final double GRID_GAP = 60;
+
+    public int getNumWires() {
+        return numWires;
+    }
 
     private int numWires;
 
@@ -35,12 +43,39 @@ public class CircuitController {
 
     private static final int MAX_GATES = 10;
 
+    private XYChart.Series<String, Number> series;
+
+    public BarChart<String, Number> getBarChart() {
+        return barChart;
+    }
+
+    final BarChart<String, Number> barChart;
+
+
     public CircuitController(int numWires, GraphicsContext graphicsContext) {
+        quantumMachine = new QuantumMachine(numWires);
         vGates = new VGate[10][MAX_GATES];
         this.numWires = numWires;
         this.graphicsContext = graphicsContext;
         selectedX = 0;
         selectedY = 0;
+
+        final CategoryAxis xAxis = new CategoryAxis();
+        final NumberAxis yAxis = new NumberAxis();
+        barChart = new BarChart<>(xAxis, yAxis);
+        xAxis.setLabel("Output");
+        yAxis.setLabel("Probability");
+
+        barChart.setLegendVisible(false);
+        barChart.setPrefWidth(600);
+
+        series = new XYChart.Series<>();
+        for (int i = 0; i < 1 << numWires; i++) {
+            String binary = String.format("%" + numWires + "s",
+                    Integer.toBinaryString(i)).replace(' ', '0');
+            series.getData().add(new XYChart.Data<>(binary, (i == 0) ? 1.0 : 0.0));
+        }
+        barChart.getData().add(series);
     }
 
     public void select(double x, double y) {
@@ -105,12 +140,9 @@ public class CircuitController {
 
         vGates[selectedY][selectedX] = null;
         selectedHeight = 50;
-
         draw();
 
     }
-
-    private double[] probabilities;
 
     public void addWire() {
         numWires++;
@@ -136,24 +168,23 @@ public class CircuitController {
         }
 
         selectedHeight = 50.0;
-//        for (VGate g : vGates) {
-//            if (selectedX >= g.getGridX() && selectedX <= g.getGridX() + (g.getSpan() - 1) && g.getGridY() == selectedY) {
-//                selectedX = g.getGridX();
-//                selectedHeight = 50 + (g.getSpan() - 1) * LINE_GAP;
-//            }
-//        }
 
         draw();
     }
 
-    public void run(BarChart<String, Number> barChart) {
+    List<double[]> probabilities = new ArrayList<>();
+    List<Integer> breakPoints = new ArrayList<>();
 
-        QuantumMachine quantumMachine = new QuantumMachine(numWires);
+    private QuantumMachine quantumMachine;
+    private int step = 0;
+
+    private void next() {
 
         for (int j = 0; j < MAX_GATES; j++) {
             for (int i = 0; i < numWires; i++) {
 
                 VGate g = vGates[i][j];
+
                 if (g != null) {
 
                     boolean canAdd = true;
@@ -165,6 +196,14 @@ public class CircuitController {
                     // REMEMBER TO BREAK
                     if (canAdd) {
                         switch (g.getLabel()) {
+                            case "BP":
+                                double[] results = new double[1 << numWires];
+                                for (int k = 0; k < 1 << numWires; k++) {
+                                    results[k] = quantumMachine.getQubits().data[k][0].getMagnitude2();
+                                }
+                                probabilities.add(results);
+                                breakPoints.add(j);
+                                break;
                             case "M":
                                 int m = quantumMachine.measure(g.getGridY());
                                 g.setValue(m);
@@ -195,16 +234,120 @@ public class CircuitController {
             }
         }
 
-        probabilities = new double[1 << numWires];
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        breakPoints.add(MAX_GATES - 1);
+        double[] results = new double[1 << numWires];
+        for (int k = 0; k < 1 << numWires; k++) {
+            results[k] = quantumMachine.getQubits().data[k][0].getMagnitude2();
+        }
+        probabilities.add(results);
+
+    }
+
+    private void resetExecution() {
+        step = 0;
+        draw();
+    }
+
+    private void updateBarChart() {
+//        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
         for (int i = 0; i < 1 << numWires; i++) {
-            probabilities[i] = quantumMachine.getQubits().data[i][0].getMagnitude2();
+            System.out.println(probabilities.get(step)[i]);
             String binary = String.format("%" + numWires + "s",
                     Integer.toBinaryString(i)).replace(' ', '0');
-            series.getData().add(new XYChart.Data<>(binary, probabilities[i]));
+            series.getData().set(i, new XYChart.Data<>(binary, probabilities.get(step)[i]));
+        }
+        barChart.getData().set(0, series);
+    }
+
+    public void execute() {
+        next();
+
+        step = 0;
+        updateBarChart();
+
+        draw();
+
+    }
+
+    public void stepForward() {
+        step++;
+        updateBarChart();
+        draw();
+    }
+
+    public void stepBackward() {
+        step--;
+        updateBarChart();
+        draw();
+    }
+
+    public void run(BarChart<String, Number> barChart) {
+
+        QuantumMachine quantumMachine = new QuantumMachine(numWires);
+
+        for (int j = 0; j < MAX_GATES; j++) {
+            for (int i = 0; i < numWires; i++) {
+
+                VGate g = vGates[i][j];
+                if (g != null) {
+
+                    boolean canAdd = true;
+                    if (g.getConnected() != null) {
+                        VGate connected = g.getConnected();
+                        canAdd = connected.getValue() == 1;
+                    }
+
+                    // REMEMBER TO BREAK
+                    if (canAdd) {
+                        switch (g.getLabel()) {
+                            case "BP":
+                                double[] results = new double[1 << numWires];
+                                for (int k = 0; k < 1 << numWires; k++) {
+                                    results[k] = quantumMachine.getQubits().data[k][0].getMagnitude2();
+                                }
+                                probabilities.add(results);
+                                break;
+                            case "M":
+                                int m = quantumMachine.measure(g.getGridY());
+                                g.setValue(m);
+                                break;
+                            case "X":
+                                quantumMachine.addGate(new X(g.getGridY()));
+                                break;
+                            case "Y":
+                                quantumMachine.addGate(new Y(g.getGridY()));
+                                break;
+                            case "Z":
+                                quantumMachine.addGate(new Z(g.getGridY()));
+                                break;
+                            case "H":
+                                quantumMachine.addGate(new H(g.getGridY()));
+                                break;
+                            case "SWAP":
+                                quantumMachine.addGate(new SWAP(g.getGridY(), g.getGridY() + 1));
+                            case "CNOT":
+                                quantumMachine.addGate(new CNOT(g.getGridY(), g.getGridY() + 1));
+                                break;
+                            default:
+                                break;
+                        }
+                        quantumMachine.execute();
+                    }
+                }
+            }
+        }
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (int i = 0; i < 1 << numWires; i++) {
+            String binary = String.format("%" + numWires + "s",
+                    Integer.toBinaryString(i)).replace(' ', '0');
+            series.getData().add(new XYChart.Data<>(binary, probabilities.get(0)[i]));
         }
 
         barChart.getData().set(0, series);
+
+        draw();
 
     }
 
@@ -243,6 +386,12 @@ public class CircuitController {
         // Draw selection
         graphicsContext.setStroke(Color.RED);
         graphicsContext.strokeRect((selectedX * LINE_GAP + LEFT_PADDING) - 25, (selectedY * GRID_GAP + TOP_PADDING) - 25, 50, selectedHeight);
+
+        // Draw step
+        if (!breakPoints.isEmpty()) {
+            graphicsContext.setFill(Color.LIGHTGREEN);
+            graphicsContext.fillOval( LEFT_PADDING + breakPoints.get(step) * GRID_GAP - 5, 0, 10, 10);
+        }
     }
 
 
