@@ -58,7 +58,7 @@ public class View extends Application {
         runBox.setSpacing(10);
         runBox.setPadding(new Insets(10));
 
-        runBox.getChildren().addAll(run, circuit.getIndicator());
+        runBox.getChildren().addAll(run, circuit.getIndicator(), circuit.getNotification());
 
         HBox stepBox = new HBox();
         stepBox.setPadding(new Insets(10));
@@ -79,13 +79,19 @@ public class View extends Application {
         topV.setFillWidth(true);
         HBox topButtons = new HBox();
         topButtons.setAlignment(Pos.CENTER);
+        topButtons.setSpacing(10);
         topButtons.setPadding(new Insets(10, 0, 10, 0));
         topV.getChildren().add(topButtons);
 
         Button bp = new Button("Break Point");
         bp.setOnMouseClicked(event -> circuit.toggleBreakPoint());
 
-        topButtons.getChildren().add(bp);
+        Button addComponent = new Button("Component +");
+        Button removeComponent = new Button("Component -");
+        Button connect = new Button("Connect");
+        connect.setOnMouseClicked(event -> circuit.connect());
+
+        topButtons.getChildren().addAll(addComponent, removeComponent, connect, bp, circuit.getAddWireButton(), circuit.getRemoveWireButton());
 
         rootPane.setTop(topV);
 //        topPane.add(bp, 0, 0);
