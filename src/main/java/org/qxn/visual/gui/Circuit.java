@@ -1,5 +1,6 @@
 package org.qxn.visual.gui;
 
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.BarChart;
@@ -7,6 +8,9 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.qxn.QuantumMachine;
@@ -142,11 +146,14 @@ public class Circuit {
 
     public void draw() {
         // Clear canvas
-        graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        graphicsContext.setFill(Color.LIGHTGRAY);
+        graphicsContext.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-//        // Draw border
+        // Draw border
 //        graphicsContext.setStroke(Color.BLACK);
-//        graphicsContext.strokeRect(0, 0, canvas.getWidth(), canvas.getHeight());
+//        graphicsContext.setLineWidth(5);
+//        graphicsContext.strokeRect(-10, 0, canvas.getWidth() + 20, canvas.getHeight());
+//        graphicsContext.setLineWidth(1);
 
         // Draw wires
         graphicsContext.setStroke(Color.BLACK);
@@ -173,10 +180,11 @@ public class Circuit {
 //                graphicsContext.fillOval(getXFromCol(i) + boxWidth / 2.0 - 5, 2, 10, 10);
 //            }
 //        }
-        graphicsContext.setLineWidth(2);
+
+        graphicsContext.setLineWidth(5);
         for (Integer i : breakPoints) {
             if (i != maxGates - 1) {
-                if (i == breakPoints.get(step)) graphicsContext.setStroke(Color.LIGHTGREEN);
+                if (i == breakPoints.get(step) && indicator.getFill() == Color.GREEN) graphicsContext.setStroke(Color.LIGHTGREEN);
                 else graphicsContext.setStroke(Color.RED);
                 graphicsContext.strokeLine(getXFromCol(i) + boxWidth + colDist / 2.0, 0, getXFromCol(i) + boxWidth + colDist / 2.0, canvas.getHeight());
             }
@@ -230,8 +238,12 @@ public class Circuit {
         stepBackward.setDisable(true);
     }
 
-    public void addBreakPoint() {
-        breakPoints.add(selectedCol);
+    public void toggleBreakPoint() {
+        if (!breakPoints.contains(selectedCol)) {
+            breakPoints.add(selectedCol);
+        } else {
+            breakPoints.remove((Object) selectedCol);
+        }
         breakPoints.sort((a, b) -> {
             if (a < b)
                 return -1;

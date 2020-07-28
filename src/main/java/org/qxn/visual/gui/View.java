@@ -4,30 +4,11 @@ import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.*;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.*;
 import javafx.stage.Stage;
-import org.qxn.linalg.Complex;
-import org.qxn.linalg.ComplexMath;
-import org.qxn.linalg.ComplexMatrix;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 
 public class View extends Application {
@@ -40,14 +21,15 @@ public class View extends Application {
     public void start(Stage stage) {
 
         BorderPane rootPane = new BorderPane();
+        rootPane.setStyle("-fx-background-color: white;");
 
         Scene scene = new Scene(rootPane);
         stage.setScene(scene);
         stage.setTitle("VisualQXN");
 
-        // Side pane for buttons
-        GridPane leftPane = new GridPane();
-        rootPane.setLeft(leftPane);
+        // pane for buttons
+        GridPane topPane = new GridPane();
+        rootPane.setTop(topPane);
 
         // Centre pane
         GridPane centerPane = new GridPane();
@@ -70,8 +52,6 @@ public class View extends Application {
 
         Button run = new Button("RUN");
         run.setOnMouseClicked(event -> circuit.run());
-        Button bp = new Button("BP");
-        bp.setOnMouseClicked(event -> circuit.addBreakPoint());
 
         HBox runBox = new HBox();
         runBox.setAlignment(Pos.CENTER_LEFT);
@@ -89,11 +69,26 @@ public class View extends Application {
         circuitPane.add(runBox, 0, 1);
         circuitPane.add(stepBox, 1, 1);
 
+        circuitPane.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT, Insets.EMPTY)));
+
         GridPane.setHalignment(stepBox, HPos.RIGHT);
-        circuitPane.setGridLinesVisible(true);
+//        circuitPane.setGridLinesVisible(true);
 
         // Side buttons
-        leftPane.add(bp, 0, 0);
+        VBox topV = new VBox();
+        topV.setFillWidth(true);
+        HBox topButtons = new HBox();
+        topButtons.setAlignment(Pos.CENTER);
+        topButtons.setPadding(new Insets(10, 0, 10, 0));
+        topV.getChildren().add(topButtons);
+
+        Button bp = new Button("Break Point");
+        bp.setOnMouseClicked(event -> circuit.toggleBreakPoint());
+
+        topButtons.getChildren().add(bp);
+
+        rootPane.setTop(topV);
+//        topPane.add(bp, 0, 0);
 
         // Status pane
         statusPane.add(circuit.getBarChart(), 0, 0);
