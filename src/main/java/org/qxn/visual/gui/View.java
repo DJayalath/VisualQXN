@@ -64,6 +64,9 @@ public class View extends Application {
         circuit.getCanvas().setOnMouseClicked(event -> circuit.select(event.getX(), event.getY()));
         circuitPane.add(circuit.getCanvas(), 0, 0);
 
+        // Side buttons
+
+
         stage.show();
 
     }

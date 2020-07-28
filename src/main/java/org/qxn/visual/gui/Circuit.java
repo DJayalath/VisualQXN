@@ -29,7 +29,12 @@ public class Circuit {
         this.graphicsContext = canvas.getGraphicsContext2D();
         this.numWires = numWires;
         this.components = new Component[numWires][maxGates];
-        this.components[0][0] = new StandardGate(0, 0, 2, new H(0));
+
+        this.components[0][0] = new StandardGate(0, 0, 1, new H(0));
+        this.components[0][1] = new CNOTGate(0, 1);
+        this.components[1][2] = new SWAPGate(1, 2);
+
+
         select(0, 0);
     }
 
