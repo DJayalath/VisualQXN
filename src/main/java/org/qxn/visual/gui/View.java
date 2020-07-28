@@ -85,7 +85,7 @@ public class View extends Application {
         GridPane circuitPane = new GridPane();
         circuitPane.setPadding(new Insets(30));
         circuitPane.add(circuitDrawing, 0, 0);
-        leftPane.add(circuitPane, 1, 0);
+        leftPane.add(circuitPane, 1, 1);
 
         buttonPane.setPadding(new Insets(5));
         buttonPane.setHgap(5);
@@ -150,7 +150,7 @@ public class View extends Application {
         // Bar chart
 
 //        centrePane.add(barChart, 0, 0);
-        leftPane.add(circuitController.getBarChart(), 1, 1);
+        leftPane.add(circuitController.getBarChart(), 1, 2);
 
         Group group = new Group();
 
@@ -246,6 +246,9 @@ public class View extends Application {
         buttonPane.add(breakPoint, 0, 6);
         buttonPane.add(stepForward, 0, 7);
         buttonPane.add(stepBackward, 0, 8);
+
+        GridPane executionPane = new GridPane();
+        leftPane.add(executionPane, 1, 0);
 
         Scene scene = new Scene(rootPane);
         stage.setScene(scene);
