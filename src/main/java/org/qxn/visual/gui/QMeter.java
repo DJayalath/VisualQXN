@@ -10,6 +10,16 @@ public class QMeter extends Component {
         super(row, col, 1);
     }
 
+    public int getClassicalBit() {
+        return classicalBit;
+    }
+
+    public void setClassicalBit(int classicalBit) {
+        this.classicalBit = classicalBit;
+    }
+
+    private int classicalBit = -1;
+
     @Override
     public void draw(GraphicsContext graphicsContext) {
 
