@@ -1,0 +1,31 @@
+package org.qxn.visual.gui;
+
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
+
+public class QMeter extends Component {
+
+    public QMeter(int row, int col) {
+        super(row, col, 1);
+    }
+
+    @Override
+    public void draw(GraphicsContext graphicsContext) {
+
+        double x = Circuit.getXFromCol(col);
+        double y = Circuit.getYFromRow(row);
+
+        double width = Circuit.boxWidth;
+        double height = Circuit.boxHeight;
+
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.fillRect(x, y, width, height);
+        graphicsContext.setStroke(Color.BLACK);
+        graphicsContext.strokeRect(x, y, width, height);
+
+        graphicsContext.strokeArc(x + 5, y + height / 2.0, width - 10, 20, 0, 160, ArcType.OPEN);
+        graphicsContext.strokeLine(x + width / 2.0 - 5 + 5, y + height / 2.0 + 10, x + width / 2.0 + 5 + 5, y + height / 2.0 - 10);
+
+    }
+}

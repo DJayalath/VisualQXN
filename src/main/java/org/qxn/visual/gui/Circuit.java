@@ -33,6 +33,7 @@ public class Circuit {
         this.components[0][0] = new StandardGate(0, 0, 1, new H(0));
         this.components[0][1] = new CNOTGate(0, 1);
         this.components[1][2] = new SWAPGate(1, 2);
+        this.components[2][1] = new QMeter(2, 1);
 
 
         select(0, 0);
