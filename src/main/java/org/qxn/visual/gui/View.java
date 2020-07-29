@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -113,6 +114,8 @@ public class View extends Application {
         // Status pane
         statusPane.add(circuit.getBarChart(), 0, 0);
         statusPane.setAlignment(Pos.CENTER);
+        GridPane.setHalignment(circuit.getBarChart(), HPos.CENTER);
+        GridPane.setValignment(circuit.getBarChart(), VPos.CENTER);
 
         addComponent.setOnMouseClicked(event -> {
             Dialog<Component> dialog = new Dialog<>();
