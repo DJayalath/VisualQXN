@@ -145,16 +145,16 @@ public class View extends Application {
                 // REMEMBER TO BREAK
                 switch (choiceBox.getValue()) {
                     case "H":
-                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new H(0)));
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new H(circuit.getSelectedRow())));
                         break;
                     case "X":
-                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new X(0)));
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new X(circuit.getSelectedRow())));
                         break;
                     case "Y":
-                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Y(0)));
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Y(circuit.getSelectedRow())));
                         break;
                     case "Z":
-                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Z(0)));
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Z(circuit.getSelectedRow())));
                         break;
                     case "SWAP":
                         dialog.setResult(new SWAPGate(circuit.getSelectedRow(), circuit.getSelectedCol()));

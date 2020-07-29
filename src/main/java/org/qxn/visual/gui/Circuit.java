@@ -151,6 +151,7 @@ public class Circuit {
                 }
             }
 
+        resetRun();
         components[selectedRow][selectedCol] = component;
         expandSelection();
         draw();
@@ -163,6 +164,7 @@ public class Circuit {
                 if (((QMeter) components[selectedRow][selectedCol]).getConnected() != null)
                     ((QMeter) components[selectedRow][selectedCol]).getConnected().setqMeter(null);
             }
+            resetRun();
             components[selectedRow][selectedCol] = null;
         }
 
@@ -334,19 +336,22 @@ public class Circuit {
             for (int i = 0; i < numWires; i++) {
                 Component component = components[i][j];
 
-                if (component instanceof StandardGate) {
-                    if (((StandardGate) component).getqMeter() != null) {
-                        if (((StandardGate) component).getqMeter().getClassicalBit() == 1)
+                if (component != null) {
+
+                    if (component instanceof StandardGate) {
+                        if (((StandardGate) component).getqMeter() != null) {
+                            if (((StandardGate) component).getqMeter().getClassicalBit() == 1)
+                                quantumMachine.addGate(((StandardGate) component).getGate());
+                        } else {
                             quantumMachine.addGate(((StandardGate) component).getGate());
-                    } else {
-                        quantumMachine.addGate(((StandardGate) component).getGate());
+                        }
+                    } else if (component instanceof QMeter) {
+                        ((QMeter) component).setClassicalBit(quantumMachine.measure(i));
                     }
-                    quantumMachine.execute();
-                } else if (component instanceof QMeter) {
-                    ((QMeter) component).setClassicalBit(quantumMachine.measure(i));
                 }
             }
 
+            quantumMachine.execute();
             // Add results for this column
             double[] results = new double[1 << numWires];
             for (int k = 0; k < 1 << numWires; k++) {
