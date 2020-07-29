@@ -1,14 +1,24 @@
 package org.qxn.visual.gui;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import org.qxn.gates.H;
+import org.qxn.gates.X;
+import org.qxn.gates.Y;
+import org.qxn.gates.Z;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 
 public class View extends Application {
@@ -88,6 +98,7 @@ public class View extends Application {
 
         Button addComponent = new Button("Component +");
         Button removeComponent = new Button("Component -");
+        removeComponent.setOnMouseClicked(event -> circuit.removeComponent());
         Button connect = new Button("Connect");
         connect.setOnMouseClicked(event -> circuit.connect());
 
@@ -100,6 +111,94 @@ public class View extends Application {
         statusPane.add(circuit.getBarChart(), 0, 0);
         statusPane.setAlignment(Pos.CENTER);
 
+        addComponent.setOnMouseClicked(event -> {
+            Dialog<Component> dialog = new Dialog<>();
+            dialog.initStyle(StageStyle.UTILITY);
+            dialog.setTitle("Add Component");
+            // No header
+
+            // No icon
+
+            dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+
+            // Selection Fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20));
+
+            List<String> choices = new ArrayList<>();
+            choices.add("H");
+            choices.add("X");
+            choices.add("Y");
+            choices.add("Z");
+            choices.add("SWAP");
+            choices.add("CNOT");
+
+            ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(choices));
+            choiceBox.setValue(choices.get(0));
+
+            Label gateLabel = new Label("Gate");
+
+            Button addGate = new Button("+");
+            addGate.setOnMouseClicked(e -> {
+                // REMEMBER TO BREAK
+                switch (choiceBox.getValue()) {
+                    case "H":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new H(0)));
+                        break;
+                    case "X":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new X(0)));
+                        break;
+                    case "Y":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Y(0)));
+                        break;
+                    case "Z":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new Z(0)));
+                        break;
+                    case "SWAP":
+                        dialog.setResult(new SWAPGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
+                        break;
+                    case "CNOT":
+                        dialog.setResult(new CNOTGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            grid.add(gateLabel, 0, 0);
+            grid.add(choiceBox, 1, 0);
+            grid.add(addGate, 2, 0);
+
+            // Measurement
+            Label measureLabel = new Label("Measure");
+            Button addMeasure = new Button("+");
+            addMeasure.setOnMouseClicked(e -> dialog.setResult(new QMeter(circuit.getSelectedRow(), circuit.getSelectedCol())));
+            GridPane.setHalignment(measureLabel, HPos.CENTER);
+
+            grid.add(measureLabel, 1, 1);
+            grid.add(addMeasure, 2, 1);
+
+            dialog.getDialogPane().setContent(grid);
+
+            dialog.setResultConverter(dialogButton -> null);
+
+            Optional<Component> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                try {
+                    circuit.addComponent(result.get());
+                } catch (CircuitException circuitException) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Circuit Placement Error");
+                    alert.setHeaderText("Error placing component");
+                    alert.setContentText(circuitException.getMessage());
+
+                    alert.showAndWait();
+                }
+            }
+
+        });
 
         stage.show();
 

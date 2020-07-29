@@ -20,6 +20,16 @@ public class QMeter extends Component {
 
     private int classicalBit = -1;
 
+    public StandardGate getConnected() {
+        return connected;
+    }
+
+    public void setConnected(StandardGate connected) {
+        this.connected = connected;
+    }
+
+    private StandardGate connected;
+
     @Override
     public void draw(GraphicsContext graphicsContext) {
 

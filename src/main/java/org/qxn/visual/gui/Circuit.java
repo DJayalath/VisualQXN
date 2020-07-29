@@ -35,6 +35,15 @@ public class Circuit {
     private final Button addWireButton = new Button("Wire +");
     private final Button removeWireButton = new Button("Wire -");
     private int numWires;
+
+    public int getSelectedRow() {
+        return selectedRow;
+    }
+
+    public int getSelectedCol() {
+        return selectedCol;
+    }
+
     private int selectedRow;
     private int selectedCol;
     private double selectedHeight;
@@ -88,6 +97,7 @@ public class Circuit {
         this.components[3][4] = new StandardGate(3, 4, 1, new Z(0));
         StandardGate xConnected = new StandardGate(2, 5, 1, new X(2));
         xConnected.setqMeter((QMeter) this.components[1][3]);
+        ((QMeter) this.components[1][3]).setConnected(xConnected);
         this.components[2][5] = xConnected;
 
         select(0, 0);
@@ -121,14 +131,46 @@ public class Circuit {
         return indicator;
     }
 
-    public void select(double x, double y) {
+    public void addComponent(Component component) throws CircuitException {
 
-        // Find selected box
-        x -= colDist;
-        y -= rowDist;
-        selectedCol = (int) (x / (boxWidth + colDist));
-        selectedRow = (int) (y / (boxHeight + rowDist));
+        // Check if space already occupied
+        for (int i = 0; i < numWires; i++)
+            if (components[i][selectedCol] != null) {
 
+                double newStart = selectedRow;
+                double newEnd = selectedRow + component.getSpan() - 1;
+                double currentStart = i;
+                double currentEnd = i + components[i][selectedCol].getSpan() - 1;
+
+                if (newStart >= currentStart && newStart <= currentEnd) {
+                    // Reject
+                    throw new CircuitException("Cannot place component here");
+                } else if (newEnd >= currentStart && newEnd <= currentEnd) {
+                    // Reject
+                    throw new CircuitException("Cannot place component here");
+                }
+            }
+
+        components[selectedRow][selectedCol] = component;
+        expandSelection();
+        draw();
+    }
+
+    public void removeComponent() {
+
+        if (components[selectedRow][selectedCol] != null) {
+            if (components[selectedRow][selectedCol] instanceof QMeter) {
+                if (((QMeter) components[selectedRow][selectedCol]).getConnected() != null)
+                    ((QMeter) components[selectedRow][selectedCol]).getConnected().setqMeter(null);
+            }
+            components[selectedRow][selectedCol] = null;
+        }
+
+        draw();
+
+    }
+
+    private void expandSelection() {
         // Expand selection to occupy component
         selectedHeight = boxHeight;
         for (int i = 0; i < numWires; i++)
@@ -138,6 +180,17 @@ public class Circuit {
                     selectedHeight = boxHeight + (boxHeight + rowDist) * (components[i][selectedCol].getSpan() - 1);
                 }
             }
+    }
+
+    public void select(double x, double y) {
+
+        // Find selected box
+        x -= colDist;
+        y -= rowDist;
+        selectedCol = (int) (x / (boxWidth + colDist));
+        selectedRow = (int) (y / (boxHeight + rowDist));
+
+        expandSelection();
 
         if (connecting == 1) {
             if (components[selectedRow][selectedCol] != null) {
@@ -156,8 +209,10 @@ public class Circuit {
         } else if (connecting == 2) {
             if (components[selectedRow][selectedCol] != null) {
                 if (components[selectedRow][selectedCol] instanceof StandardGate) {
-                    if (selectedRow > connectingComponent.getRow() && selectedCol > connectingComponent.getCol())
+                    if (selectedRow > connectingComponent.getRow() && selectedCol > connectingComponent.getCol()) {
                         ((StandardGate) components[selectedRow][selectedCol]).setqMeter(connectingComponent);
+                        connectingComponent.setConnected((StandardGate) components[selectedRow][selectedCol]);
+                    }
                 }
             }
             notification.setText("");
