@@ -196,17 +196,36 @@ public class View extends Application {
             grid.add(choiceBox, 1, 0);
             grid.add(addGate, 2, 0);
 
+            // R Gate
+            Label rLabel = new Label("R-Gate");
+            TextField phi = new TextField();
+            phi.setPromptText("\u03d5 (Rad.)");
+            phi.setMinWidth(Double.MIN_VALUE);
+            phi.setPrefWidth(Double.MIN_VALUE);
+            Button addR = new Button("+");
+            addR.setOnMouseClicked(e -> {
+                double phaseShift = 0;
+                try {
+                    phaseShift = Double.parseDouble(phi.getText());
+                } catch (Exception ignored) {}
+                dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new R(circuit.getSelectedRow(), phaseShift)));
+            });
+
+            grid.add(rLabel, 0, 1);
+            grid.add(phi, 1, 1);
+            grid.add(addR, 2, 1);
+
             // Measurement
-            Label measureLabel = new Label("Measure");
+            Label measureLabel = new Label("Measure Qubit");
             Button addMeasure = new Button("+");
             addMeasure.setOnMouseClicked(e -> dialog.setResult(new QMeter(circuit.getSelectedRow(), circuit.getSelectedCol())));
             GridPane.setHalignment(measureLabel, HPos.LEFT);
 
-            grid.add(measureLabel, 0, 1);
-            grid.add(addMeasure, 2, 1);
+            grid.add(measureLabel, 0, 2, 2, 1);
+            grid.add(addMeasure, 2, 2);
 
             // Matrix
-            Label matrixLabel = new Label("Matrix");
+            Label matrixLabel = new Label("Matrix-Defined Gate");
             GridPane.setHalignment(matrixLabel, HPos.LEFT);
             Button addMatrix = new Button("+");
             addMatrix.setOnMouseClicked(e -> {
@@ -287,11 +306,11 @@ public class View extends Application {
 
             });
 
-            grid.add(matrixLabel, 0, 2);
-            grid.add(addMatrix, 2, 2);
+            grid.add(matrixLabel, 0, 3, 2, 1);
+            grid.add(addMatrix, 2, 3);
 
             // Functional Oracle
-            Label functionOracleLabel = new Label("Function Oracle");
+            Label functionOracleLabel = new Label("Function-Defined Gate");
             GridPane.setHalignment(functionOracleLabel, HPos.LEFT);
             Button addOracle = new Button("+");
             addOracle.setOnMouseClicked(e -> {
@@ -396,8 +415,8 @@ public class View extends Application {
                 dialog.getDialogPane().getScene().getWindow().centerOnScreen();
             });
 
-            grid.add(functionOracleLabel, 0, 3, 2, 1);
-            grid.add(addOracle, 2, 3);
+            grid.add(functionOracleLabel, 0, 4, 2, 1);
+            grid.add(addOracle, 2, 4);
 
             dialog.getDialogPane().setContent(grid);
 
