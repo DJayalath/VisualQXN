@@ -6,27 +6,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.qxn.gates.Gate;
 
-public class StandardGate extends Component {
+public class MatrixGate extends StandardGate {
 
-    public Gate getGate() {
-        return gate;
-    }
+    protected String label;
 
-    protected final Gate gate;
-
-    public QMeter getqMeter() {
-        return qMeter;
-    }
-
-    public void setqMeter(QMeter qMeter) {
-        this.qMeter = qMeter;
-    }
-
-    protected QMeter qMeter;
-
-    public StandardGate(int row, int col, int span, Gate gate) {
-        super(row, col, span);
-        this.gate = gate;
+    public MatrixGate(int row, int col, int span, Gate gate, String label) {
+        super(row, col, span, gate);
+        this.label = label;
     }
 
     @Override
@@ -46,7 +32,7 @@ public class StandardGate extends Component {
         graphicsContext.setTextAlign(TextAlignment.CENTER);
         graphicsContext.setTextBaseline(VPos.CENTER);
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText(gate.getClass().getSimpleName(), x + width / 2.0, y + height / 2.0);
+        graphicsContext.fillText(label, x + width / 2.0, y + height / 2.0);
 
         // Draw connection
         if (qMeter != null) {

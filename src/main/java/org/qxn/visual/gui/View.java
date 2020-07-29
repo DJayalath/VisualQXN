@@ -7,14 +7,17 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.qxn.gates.H;
-import org.qxn.gates.X;
-import org.qxn.gates.Y;
-import org.qxn.gates.Z;
+import org.qxn.gates.*;
+import org.qxn.linalg.ComplexMatrix;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,6 +182,85 @@ public class View extends Application {
 
             grid.add(measureLabel, 1, 1);
             grid.add(addMeasure, 2, 1);
+
+            // Matrix
+            Label matrixLabel = new Label("Matrix");
+            Button addMatrix = new Button("+");
+            addMatrix.setOnMouseClicked(e -> {
+
+                grid.getChildren().clear();
+
+                Label instructions = new Label("Use comma separated columns and new lines for rows in component notation with (x:y) = x + iy");
+                Label example = new Label("(1:0), (0:0)\n(0:0), (0:1)");
+                Label eval = new Label("evaluates to");
+                Label example2 = new Label("(1 + 0i, 0 + 0i)\n(0 + 0i, 0 + 1i)");
+                TextArea matrixInput = new TextArea();
+                grid.add(instructions, 0, 0, 3, 1);
+                grid.add(example, 0, 1);
+                grid.add(eval, 1, 1);
+                grid.add(example2, 2, 1);
+
+                TextField label = new TextField();
+                label.setPromptText("Enter gate label");
+
+                grid.add(label, 0, 2);
+
+                grid.add(matrixInput, 0, 3, 3, 1);
+
+                Button add = new Button("ADD");
+                add.setOnMouseClicked(ev -> {
+                    String[] rows = matrixInput.getText().split("\n");
+                    ComplexMatrix gateMatrix = new ComplexMatrix(rows.length, rows.length);
+
+                    try {
+                        int i = 0;
+                        for (String row : rows) {
+                            int j = 0;
+                            String[] vals = row.split(",");
+                            for (String val : vals) {
+                                val = val.replace("(", "");
+                                val = val.replace(")", "");
+                                val = val.replace(" ", "");
+                                String[] realImaginary = val.split(":");
+
+                                gateMatrix.data[i][j].real = Double.parseDouble(realImaginary[0]);
+                                gateMatrix.data[i][j].imaginary = Double.parseDouble(realImaginary[1]);
+
+                                j++;
+                            }
+                            i++;
+                        }
+                    } catch (Exception exception) {
+                        dialog.setResult(null);
+                    }
+
+                    // Check unitary
+                    if (!gateMatrix.isUnitary()) {
+                        dialog.setResult(null);
+                    }
+
+                    int span = (int) (Math.log(rows.length) / Math.log(2));
+                    dialog.setResult(new MatrixGate(circuit.getSelectedRow(), circuit.getSelectedCol(), span, new CustomGate(circuit.getSelectedRow(), span, gateMatrix), label.getText()));
+                });
+
+                grid.add(add, 2, 4);
+                GridPane.setHalignment(add, HPos.RIGHT);
+
+                dialog.getDialogPane().getScene().getWindow().sizeToScene();
+                dialog.getDialogPane().getScene().getWindow().centerOnScreen();
+
+            });
+            GridPane.setHalignment(matrixLabel, HPos.CENTER);
+
+            grid.add(matrixLabel, 1, 2);
+            grid.add(addMatrix, 2, 2);
+
+            // Functional Oracle
+            Label functionOracleLabel = new Label("Function Oracle");
+            Button addOracle = new Button("+");
+
+            grid.add(functionOracleLabel, 0, 3, 2, 1);
+            grid.add(addOracle, 2, 3);
 
             dialog.getDialogPane().setContent(grid);
 
