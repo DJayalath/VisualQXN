@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import org.qxn.gates.*;
 import org.qxn.linalg.ComplexMatrix;
 
@@ -125,13 +126,15 @@ public class View extends Application {
 
             // No icon
 
-            dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+//            dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+            Window window = dialog.getDialogPane().getScene().getWindow();
+            window.setOnCloseRequest(e -> window.hide());
 
             // Selection Fields
             GridPane grid = new GridPane();
             grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new Insets(20));
+            grid.setVgap(5);
+            grid.setPadding(new Insets(10, 10, 0, 10));
 
             List<String> choices = new ArrayList<>();
             choices.add("H");
@@ -181,36 +184,47 @@ public class View extends Application {
             Label measureLabel = new Label("Measure");
             Button addMeasure = new Button("+");
             addMeasure.setOnMouseClicked(e -> dialog.setResult(new QMeter(circuit.getSelectedRow(), circuit.getSelectedCol())));
-            GridPane.setHalignment(measureLabel, HPos.CENTER);
+            GridPane.setHalignment(measureLabel, HPos.LEFT);
 
-            grid.add(measureLabel, 1, 1);
+            grid.add(measureLabel, 0, 1);
             grid.add(addMeasure, 2, 1);
 
             // Matrix
             Label matrixLabel = new Label("Matrix");
+            GridPane.setHalignment(matrixLabel, HPos.LEFT);
             Button addMatrix = new Button("+");
             addMatrix.setOnMouseClicked(e -> {
 
                 grid.getChildren().clear();
+                grid.setVgap(10);
 
-                Label instructions = new Label("Use comma separated columns and new lines for rows in component notation with (x:y) = x + iy");
+                Label instructions = new Label("Use comma separated columns and new lines for rows");
+                Label instructions2 = new Label("Write values in component notation with (x:y) = x + iy");
                 Label example = new Label("(1:0), (0:0)\n(0:0), (0:1)");
                 Label eval = new Label("evaluates to");
                 Label example2 = new Label("(1 + 0i, 0 + 0i)\n(0 + 0i, 0 + 1i)");
+                HBox hbox = new HBox();
+                hbox.setSpacing(10);
+                hbox.setAlignment(Pos.CENTER);
+                hbox.getChildren().addAll(example, eval, example2);
                 TextArea matrixInput = new TextArea();
+                matrixInput.setMinWidth(Double.MIN_VALUE);
+                matrixInput.setPrefWidth(Double.MIN_VALUE);
                 grid.add(instructions, 0, 0, 3, 1);
-                grid.add(example, 0, 1);
-                grid.add(eval, 1, 1);
-                grid.add(example2, 2, 1);
+                grid.add(instructions2, 0, 1, 3, 1);
+                grid.add(hbox, 0, 2, 3, 1);
 
                 TextField label = new TextField();
                 label.setPromptText("Enter gate label");
 
-                grid.add(label, 0, 2);
+                grid.add(label, 0, 3);
 
-                grid.add(matrixInput, 0, 3, 3, 1);
+                grid.add(matrixInput, 0, 4, 3, 1);
 
-                Button add = new Button("ADD");
+                Label errorLabel = new Label("");
+                errorLabel.setTextFill(Color.RED);
+
+                Button add = new Button("+");
                 add.setOnMouseClicked(ev -> {
                     String[] rows = matrixInput.getText().split("\n");
                     ComplexMatrix gateMatrix = new ComplexMatrix(rows.length, rows.length);
@@ -234,37 +248,41 @@ public class View extends Application {
                             i++;
                         }
                     } catch (Exception exception) {
-                        dialog.close();
+                        errorLabel.setText("Invalid matrix entry format");
+                        return;
                     }
 
                     // Check unitary
                     if (!gateMatrix.isUnitary()) {
-                        dialog.close();
+                        errorLabel.setText("Input matrix is not unitary");
+                        return;
                     }
 
                     int span = (int) (Math.log(rows.length) / Math.log(2));
                     dialog.setResult(new MatrixGate(circuit.getSelectedRow(), circuit.getSelectedCol(), span, new CustomGate(circuit.getSelectedRow(), span, gateMatrix), label.getText()));
                 });
 
-                grid.add(add, 2, 4);
+                grid.add(errorLabel, 0, 5, 2, 1);
+                grid.add(add, 2, 5);
                 GridPane.setHalignment(add, HPos.RIGHT);
 
                 dialog.getDialogPane().getScene().getWindow().sizeToScene();
                 dialog.getDialogPane().getScene().getWindow().centerOnScreen();
 
             });
-            GridPane.setHalignment(matrixLabel, HPos.CENTER);
 
-            grid.add(matrixLabel, 1, 2);
+            grid.add(matrixLabel, 0, 2);
             grid.add(addMatrix, 2, 2);
 
             // Functional Oracle
             Label functionOracleLabel = new Label("Function Oracle");
+            GridPane.setHalignment(functionOracleLabel, HPos.LEFT);
             Button addOracle = new Button("+");
             addOracle.setOnMouseClicked(e -> {
                 grid.getChildren().clear();
+                grid.setVgap(10);
 
-                Label instructions = new Label("U : (x, y) -> (x, y XOR f(x))\nf(x) = 1 when");
+                Label instructions = new Label("Defining U : (x, y) \u2192 (x, y \u2295 f(x))\n\nf(x) = 1 when the inequality is true\nf(x) = 0 otherwise");
                 TextField label = new TextField();
                 label.setPromptText("Enter oracle label");
 
@@ -293,52 +311,70 @@ public class View extends Application {
 
                 TextField entry = new TextField();
 
-                Button add = new Button("ADD");
+                Label errorLabel = new Label("");
+                errorLabel.setTextFill(Color.RED);
+
+                Button add = new Button("+");
                 GridPane.setHalignment(add, HPos.RIGHT);
                 add.setOnMouseClicked(f -> {
-                    Oracle.BitStringMap bitStringMap = new Oracle.BitStringMap() {
+                    try {
                         final int number = Integer.parseInt(entry.getText());
-                        final String inequality = inequalities.getValue();
-                        @Override
-                        public boolean test(int i) {
-                            switch (inequality) {
-                                case ">":
-                                    return i > number;
-                                case "<":
-                                    return i < number;
-                                case ">=":
-                                    return i >= number;
-                                case "<=":
-                                    return i <= number;
-                                case "=":
-                                    return i == number;
-                                case "!=":
-                                    return i != number;
-                                case "%":
-                                    return i % number == 0;
-                                default:
-                                    return false;
+                        Oracle.BitStringMap bitStringMap = new Oracle.BitStringMap() {
+                            final String inequality = inequalities.getValue();
+                            @Override
+                            public boolean test(int i) {
+                                switch (inequality) {
+                                    case ">":
+                                        return i > number;
+                                    case "<":
+                                        return i < number;
+                                    case ">=":
+                                        return i >= number;
+                                    case "<=":
+                                        return i <= number;
+                                    case "=":
+                                        return i == number;
+                                    case "!=":
+                                        return i != number;
+                                    case "%":
+                                        return i % number == 0;
+                                    default:
+                                        return false;
+                                }
                             }
-                        }
-                    };
-                    int gateSpan = Integer.parseInt(gateChoice.getValue());
-                    dialog.setResult(
-                            new MatrixGate(
-                                    circuit.getSelectedRow(), circuit.getSelectedCol(), gateSpan,
-                                    new Oracle(circuit.getSelectedRow(), gateSpan - 1, circuit.getSelectedRow() + gateSpan, bitStringMap),
-                                    label.getText()
-                            )
-                    );
+                        };
+
+                        int gateSpan = Integer.parseInt(gateChoice.getValue());
+                        dialog.setResult(
+                                new MatrixGate(
+                                        circuit.getSelectedRow(), circuit.getSelectedCol(), gateSpan,
+                                        new Oracle(circuit.getSelectedRow(), gateSpan - 1, circuit.getSelectedRow() + gateSpan, bitStringMap),
+                                        label.getText()
+                                )
+                        );
+                    } catch (NumberFormatException numberFormatException) {
+                        errorLabel.setText("Invalid number input");
+                    }
                 });
 
-                grid.add(instructions, 0, 0, 3, 1);
-                grid.add(label, 0, 1, 3, 1);
-                grid.add(gateSizeLabel, 0, 2, 2, 1);
-                grid.add(gateChoice, 2, 2);
-                grid.add(xLabel, 0, 3);
-                grid.add(inequalities, 1, 3);
-                grid.add(entry, 2, 3);
-                grid.add(add, 2, 4);
+                grid.add(new Label("Oracle label"), 0, 0);
+                grid.add(label, 1, 0);
+                grid.add(gateSizeLabel, 0, 1);
+                GridPane.setHalignment(gateChoice, HPos.RIGHT);
+                grid.add(gateChoice, 1, 1);
+                grid.add(instructions, 0, 2, 2, 1);
+                grid.add(errorLabel, 0, 4);
+                grid.add(add, 1, 4);
+
+                GridPane iqPane = new GridPane();
+                GridPane.setHalignment(iqPane, HPos.RIGHT);
+                iqPane.setHgap(5);
+                grid.add(iqPane, 0, 3, 2, 1);
+
+                iqPane.add(xLabel, 0, 0);
+                iqPane.add(inequalities, 1, 0);
+                GridPane.setHalignment(entry, HPos.RIGHT);
+                iqPane.add(entry, 2, 0);
 
                 dialog.getDialogPane().getScene().getWindow().sizeToScene();
                 dialog.getDialogPane().getScene().getWindow().centerOnScreen();
