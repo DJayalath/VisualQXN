@@ -258,7 +258,8 @@ public class Circuit {
         graphicsContext.setLineWidth(5);
         for (int i : breakPoints) {
             if (i != maxGates - 1) {
-                if (i == breakPoints.get(step) && indicator.getFill() == Color.GREEN) graphicsContext.setStroke(Color.LIGHTGREEN);
+                if (step >= 0 && i == breakPoints.get(step) && indicator.getFill() == Color.GREEN)
+                    graphicsContext.setStroke(Color.LIGHTGREEN);
                 else graphicsContext.setStroke(Color.RED);
                 graphicsContext.strokeLine(getXFromCol(i) + boxWidth + colDist / 2.0, 0, getXFromCol(i) + boxWidth + colDist / 2.0, canvas.getHeight());
             }
@@ -381,6 +382,7 @@ public class Circuit {
             breakPoints.remove((Object) selectedCol);
         }
         breakPoints.sort(Integer::compareTo);
+        resetRun();
         draw();
     }
 
@@ -399,8 +401,6 @@ public class Circuit {
                 breakPoints.addLast(maxGates - 1);
 
             updateBarChart();
-            System.out.println(breakPoints.get(step));
-            System.out.println(probabilities.get(breakPoints.get(step))[0]);
 
             stepForward.setDisable(step + 1 >= breakPoints.size());
 
