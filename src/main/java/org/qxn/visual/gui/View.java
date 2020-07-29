@@ -231,12 +231,12 @@ public class View extends Application {
                             i++;
                         }
                     } catch (Exception exception) {
-                        dialog.setResult(null);
+                        dialog.close();
                     }
 
                     // Check unitary
                     if (!gateMatrix.isUnitary()) {
-                        dialog.setResult(null);
+                        dialog.close();
                     }
 
                     int span = (int) (Math.log(rows.length) / Math.log(2));
@@ -258,6 +258,88 @@ public class View extends Application {
             // Functional Oracle
             Label functionOracleLabel = new Label("Function Oracle");
             Button addOracle = new Button("+");
+            addOracle.setOnMouseClicked(e -> {
+                grid.getChildren().clear();
+
+                Label instructions = new Label("U : (x, y) -> (x, y XOR f(x))\nf(x) = 1 when");
+                TextField label = new TextField();
+                label.setPromptText("Enter oracle label");
+
+                List<String> gateSize = new ArrayList<>();
+                for (int i = 2; i <= 10; i++)
+                    gateSize.add(String.valueOf(i));
+
+                Label gateSizeLabel = new Label ("Gate Size");
+                ChoiceBox<String> gateChoice = new ChoiceBox<>(FXCollections.observableArrayList(gateSize));
+                gateChoice.setValue(gateSize.get(0));
+
+                List<String> iChoices = new ArrayList<>();
+
+                iChoices.add(">");
+                iChoices.add("<");
+                iChoices.add(">=");
+                iChoices.add("<=");
+                iChoices.add("=");
+                iChoices.add("!=");
+                iChoices.add("%");
+
+                ChoiceBox<String> inequalities = new ChoiceBox<>(FXCollections.observableArrayList(iChoices));
+                inequalities.setValue(iChoices.get(0));
+
+                Label xLabel = new Label("X");
+
+                TextField entry = new TextField();
+
+                Button add = new Button("ADD");
+                GridPane.setHalignment(add, HPos.RIGHT);
+                add.setOnMouseClicked(f -> {
+                    Oracle.BitStringMap bitStringMap = new Oracle.BitStringMap() {
+                        final int number = Integer.parseInt(entry.getText());
+                        final String inequality = inequalities.getValue();
+                        @Override
+                        public boolean test(int i) {
+                            switch (inequality) {
+                                case ">":
+                                    return i > number;
+                                case "<":
+                                    return i < number;
+                                case ">=":
+                                    return i >= number;
+                                case "<=":
+                                    return i <= number;
+                                case "=":
+                                    return i == number;
+                                case "!=":
+                                    return i != number;
+                                case "%":
+                                    return i % number == 0;
+                                default:
+                                    return false;
+                            }
+                        }
+                    };
+                    int gateSpan = Integer.parseInt(gateChoice.getValue());
+                    dialog.setResult(
+                            new MatrixGate(
+                                    circuit.getSelectedRow(), circuit.getSelectedCol(), gateSpan,
+                                    new Oracle(circuit.getSelectedRow(), gateSpan - 1, circuit.getSelectedRow() + gateSpan, bitStringMap),
+                                    label.getText()
+                            )
+                    );
+                });
+
+                grid.add(instructions, 0, 0, 3, 1);
+                grid.add(label, 0, 1, 3, 1);
+                grid.add(gateSizeLabel, 0, 2, 2, 1);
+                grid.add(gateChoice, 2, 2);
+                grid.add(xLabel, 0, 3);
+                grid.add(inequalities, 1, 3);
+                grid.add(entry, 2, 3);
+                grid.add(add, 2, 4);
+
+                dialog.getDialogPane().getScene().getWindow().sizeToScene();
+                dialog.getDialogPane().getScene().getWindow().centerOnScreen();
+            });
 
             grid.add(functionOracleLabel, 0, 3, 2, 1);
             grid.add(addOracle, 2, 3);
