@@ -138,11 +138,15 @@ public class View extends Application {
 
             List<String> choices = new ArrayList<>();
             choices.add("H");
+            choices.add("S");
+            choices.add("T");
             choices.add("X");
             choices.add("Y");
             choices.add("Z");
             choices.add("SWAP");
+            choices.add("CSWAP");
             choices.add("CNOT");
+            choices.add("CCNOT");
 
             ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(choices));
             choiceBox.setValue(choices.get(0));
@@ -156,6 +160,12 @@ public class View extends Application {
                     case "H":
                         dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new H(circuit.getSelectedRow())));
                         break;
+                    case "S":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new S(circuit.getSelectedRow())));
+                        break;
+                    case "T":
+                        dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new T(circuit.getSelectedRow())));
+                        break;
                     case "X":
                         dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), 1, new X(circuit.getSelectedRow())));
                         break;
@@ -168,8 +178,14 @@ public class View extends Application {
                     case "SWAP":
                         dialog.setResult(new SWAPGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
                         break;
+                    case "CSWAP":
+                        dialog.setResult(new CSWAPGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
+                        break;
                     case "CNOT":
                         dialog.setResult(new CNOTGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
+                        break;
+                    case "CCNOT":
+                        dialog.setResult(new CCNOTGate(circuit.getSelectedRow(), circuit.getSelectedCol()));
                         break;
                     default:
                         break;
