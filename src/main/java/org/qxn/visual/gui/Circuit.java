@@ -133,6 +133,10 @@ public class Circuit {
 
     public void addComponent(Component component) throws CircuitException {
 
+        // Check if number of wires supports component
+        if (selectedRow + component.getSpan() > numWires)
+            throw new CircuitException("Cannot place component here");
+
         // Check if space already occupied
         for (int i = 0; i < numWires; i++)
             if (components[i][selectedCol] != null) {
@@ -322,6 +326,10 @@ public class Circuit {
             removeWireButton.setDisable(true);
 
         addWireButton.setDisable(false);
+
+        if (selectedRow >= numWires)
+            selectedRow = numWires - 1;
+        expandSelection();
 
         draw();
     }
