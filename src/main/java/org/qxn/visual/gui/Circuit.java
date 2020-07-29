@@ -80,7 +80,7 @@ public class Circuit {
         yAxis.setLabel("Probability");
 
         barChart.setLegendVisible(false);
-        barChart.setPrefWidth(600);
+        barChart.setPrefWidth(canvas.getWidth());
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (int i = 0; i < 1 << numWires; i++) {
