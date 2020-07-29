@@ -1,5 +1,6 @@
 package org.qxn.visual.gui;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.BarChart;
@@ -10,12 +11,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.TextAlignment;
 import org.qxn.QuantumMachine;
 import org.qxn.gates.H;
 import org.qxn.gates.X;
 import org.qxn.gates.Z;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -193,8 +196,12 @@ public class Circuit {
         // Find selected box
         x -= colDist;
         y -= rowDist;
-        selectedCol = (int) (x / (boxWidth + colDist));
-        selectedRow = (int) (y / (boxHeight + rowDist));
+
+        // DO NOT ALLOW SELECTION OF LAST POSITION (reserved for percentage bar)
+        if ((int) (x / (boxWidth + colDist)) < maxGates - 1) {
+            selectedCol = (int) (x / (boxWidth + colDist));
+            selectedRow = (int) (y / (boxHeight + rowDist));
+        }
 
         expandSelection();
 
@@ -269,6 +276,22 @@ public class Circuit {
             }
         }
         graphicsContext.setLineWidth(1);
+
+        // Draw IF measured probabilities
+        if (step >= 0 && indicator.getFill() == Color.GREEN) {
+            double[] measures = onIfMeasured.get(step);
+            for (int i = 0; i < numWires; i++) {
+                graphicsContext.setFill(Color.WHITESMOKE);
+                graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i), boxWidth, boxHeight);
+                graphicsContext.setFill(new Color(0.0, 1.0, 0.0, 1.0));
+                graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i) + boxHeight - boxHeight * measures[i], boxWidth, boxHeight * measures[i]);
+                String percentage = String.format("%.1f", measures[i] * 100.0);
+                graphicsContext.setTextAlign(TextAlignment.CENTER);
+                graphicsContext.setTextBaseline(VPos.CENTER);
+                graphicsContext.setFill(Color.BLACK);
+                graphicsContext.fillText(percentage + "%", getXFromCol(maxGates - 1) + boxWidth / 2.0, getYFromRow(i) + boxHeight / 2.0);
+            }
+        }
     }
 
     public Label getNotification() {
@@ -334,9 +357,12 @@ public class Circuit {
         draw();
     }
 
+    private List<double[]> onIfMeasured = new ArrayList<>();
+
     public void run() {
 
         probabilities.clear();
+        onIfMeasured.clear();
         step = -1;
 
         QuantumMachine quantumMachine = new QuantumMachine(numWires);
@@ -363,9 +389,17 @@ public class Circuit {
             quantumMachine.execute();
             // Add results for this column
             double[] results = new double[1 << numWires];
+            double[] measures = new double[numWires];
             for (int k = 0; k < 1 << numWires; k++) {
                 results[k] = quantumMachine.getQubits().data[k][0].getMagnitude2();
+                double p = results[k];
+                for (int l = 0; l < numWires; l++) {
+                    if ((k & (1 << (numWires - l - 1))) != 0) {
+                        measures[l] += p;
+                    }
+                }
             }
+            onIfMeasured.add(measures);
             probabilities.add(results);
         }
 
@@ -376,6 +410,7 @@ public class Circuit {
 
     public void resetRun() {
         probabilities.clear();
+        onIfMeasured.clear();
         step = -1;
         indicator.setFill(Color.ORANGE);
         draw();
@@ -415,8 +450,9 @@ public class Circuit {
             if (step > 0)
                 stepBackward.setDisable(false);
 
-            draw();
         }
+
+        draw();
 
     }
 
