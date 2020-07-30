@@ -66,6 +66,7 @@ public class Circuit {
         this.components = new Component[maxWires][maxGates];
 
         canvas.setOnMouseMoved(e -> hover(e.getX(), e.getY()));
+        canvas.setOnMouseExited(e -> {hoverDisable = true; draw();});
 
         stepForward.setOnMouseClicked(event -> next());
         stepBackward.setOnMouseClicked(event -> previous());
@@ -178,6 +179,8 @@ public class Circuit {
             components[selectedRow][selectedCol] = null;
         }
 
+        expandSelection();
+
         draw();
 
     }
@@ -289,10 +292,10 @@ public class Circuit {
         }
 
         // Draw components
-        for (int i = 0; i < numWires; i++)
-            for (int j = 0; j < maxGates; j++)
-                if (components[i][j] != null)
-                    components[i][j].draw(graphicsContext);
+        for (int i = 0; i < maxGates; i++)
+            for (int j = 0; j < numWires; j++)
+                if (components[j][i] != null)
+                    components[j][i].draw(graphicsContext);
 
         // Draw hover
         if (!hoverDisable) {
@@ -321,8 +324,8 @@ public class Circuit {
         graphicsContext.setLineWidth(1);
 
         // Draw IF measured probabilities
-        if (step >= 0 && indicator.getFill() == Color.GREEN) {
-            double[] measures = onIfMeasured.get(step);
+        if (!queuedMeasure.isEmpty()) {
+            double[] measures = queuedMeasure.get(0);
             for (int i = 0; i < numWires; i++) {
                 graphicsContext.setFill(Color.WHITESMOKE);
                 graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i), boxWidth, boxHeight);
@@ -400,7 +403,7 @@ public class Circuit {
         draw();
     }
 
-    private List<double[]> onIfMeasured = new ArrayList<>();
+    private final List<double[]> onIfMeasured = new ArrayList<>();
 
     public void run() {
 
@@ -454,6 +457,7 @@ public class Circuit {
     public void resetRun() {
         probabilities.clear();
         onIfMeasured.clear();
+        queuedMeasure.clear();
         step = -1;
         indicator.setFill(Color.ORANGE);
         draw();
@@ -517,6 +521,8 @@ public class Circuit {
 
     }
 
+    List<double[]> queuedMeasure = new ArrayList<>();
+
     private void updateBarChart() {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         double[] results = probabilities.get(breakPoints.get(step));
@@ -528,6 +534,10 @@ public class Circuit {
 
         barChart.getData().clear();
         barChart.getData().add(series);
+
+        queuedMeasure.clear();
+        queuedMeasure.add(onIfMeasured.get(breakPoints.get(step)));
+
     }
 
 }
