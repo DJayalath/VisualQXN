@@ -107,7 +107,7 @@ public class View extends Application {
         Button connect = new Button("Connect");
         connect.setOnMouseClicked(event -> circuit.connect());
 
-        topButtons.getChildren().addAll(addComponent, removeComponent, connect, bp, circuit.getAddWireButton(), circuit.getRemoveWireButton());
+        topButtons.getChildren().addAll(addComponent, removeComponent, connect, circuit.getControlButton(), bp, circuit.getAddWireButton(), circuit.getRemoveWireButton());
 
         rootPane.setTop(topV);
 //        topPane.add(bp, 0, 0);

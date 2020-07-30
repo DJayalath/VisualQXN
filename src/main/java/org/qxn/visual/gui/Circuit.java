@@ -37,6 +37,7 @@ public class Circuit {
     private final Label notification = new Label();
     private final Button addWireButton = new Button("Wire +");
     private final Button removeWireButton = new Button("Wire -");
+    private final Button controlButton = new Button("Control");
     private int numWires;
 
     public int getSelectedRow() {
@@ -67,6 +68,8 @@ public class Circuit {
 
         canvas.setOnMouseMoved(e -> hover(e.getX(), e.getY()));
         canvas.setOnMouseExited(e -> {hoverDisable = true; draw();});
+        controlButton.setDisable(true);
+        controlButton.setOnMouseClicked(e -> control());
 
         stepForward.setOnMouseClicked(event -> next());
         stepBackward.setOnMouseClicked(event -> previous());
@@ -207,6 +210,24 @@ public class Circuit {
                     selectedHeight = boxHeight + (boxHeight + rowDist) * (components[i][selectedCol].getSpan() - 1);
                 }
             }
+
+        // Can control?
+        if (selectedRow > 0 && components[selectedRow - 1][selectedCol] == null) {
+            if (components[selectedRow][selectedCol] instanceof StandardGate) {
+                controlButton.setDisable(false);
+            } else controlButton.setDisable(true);
+        } else controlButton.setDisable(true);
+    }
+
+    public void control() {
+
+        components[selectedRow - 1][selectedCol] = new ControlledGate((StandardGate) components[selectedRow][selectedCol]);
+        components[selectedRow][selectedCol] = null;
+
+        selectedRow -= 1;
+        expandSelection();
+        draw();
+
     }
 
     private int hoverCol, hoverRow;
@@ -227,6 +248,10 @@ public class Circuit {
 
         expandHover();
         draw();
+    }
+
+    public Button getControlButton() {
+        return controlButton;
     }
 
     public void select(double x, double y) {
