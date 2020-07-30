@@ -265,6 +265,9 @@ public class Circuit {
 
         hoverDisable = x > hoverCol * (boxWidth + colDist) + boxWidth || y > hoverRow * (boxHeight + colDist) + boxHeight;
 
+        if (components[hoverRow][hoverCol] != null)
+            hoverDisable = false;
+
         expandHover();
         draw();
     }
@@ -344,7 +347,7 @@ public class Circuit {
         // Draw hover
         if (!hoverDisable) {
             graphicsContext.setLineWidth(3);
-            graphicsContext.setStroke(Color.BLACK);
+            graphicsContext.setStroke(Color.DARKGRAY);
             graphicsContext.strokeRect(colDist + hoverCol * (boxWidth + colDist), rowDist + hoverRow * (boxWidth + rowDist), boxWidth, hoverHeight);
             graphicsContext.setLineWidth(1);
         }
