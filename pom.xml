@@ -75,7 +75,7 @@
             <artifactId>qxn</artifactId>
             <version>0.1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/qxn-0.1.0.jar</systemPath>
+            <systemPath>${project.basedir}/lib/qxn-0.1.1.jar</systemPath>
         </dependency>
     </dependencies>
     
