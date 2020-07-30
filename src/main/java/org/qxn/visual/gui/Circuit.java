@@ -65,6 +65,8 @@ public class Circuit {
         this.numWires = numWires;
         this.components = new Component[maxWires][maxGates];
 
+        canvas.setOnMouseMoved(e -> hover(e.getX(), e.getY()));
+
         stepForward.setOnMouseClicked(event -> next());
         stepBackward.setOnMouseClicked(event -> previous());
         stepForward.setDisable(true);
@@ -104,6 +106,7 @@ public class Circuit {
         this.components[2][5] = xConnected;
 
         select(0, 0);
+        hover(0, 0);
     }
 
     public static double getXFromCol(double col) {
@@ -179,6 +182,18 @@ public class Circuit {
 
     }
 
+    private void expandHover() {
+        // Expand selection to occupy component
+        hoverHeight = boxHeight;
+        for (int i = 0; i < numWires; i++)
+            if (components[i][hoverCol] != null) {
+                if (hoverRow >= i && hoverRow < i + components[i][hoverCol].getSpan()) {
+                    hoverRow = i;
+                    hoverHeight = boxHeight + (boxHeight + rowDist) * (components[i][hoverCol].getSpan() - 1);
+                }
+            }
+    }
+
     private void expandSelection() {
         // Expand selection to occupy component
         selectedHeight = boxHeight;
@@ -189,6 +204,26 @@ public class Circuit {
                     selectedHeight = boxHeight + (boxHeight + rowDist) * (components[i][selectedCol].getSpan() - 1);
                 }
             }
+    }
+
+    private int hoverCol, hoverRow;
+    private double hoverHeight;
+    private boolean hoverDisable = true;
+    public void hover(double x, double y) {
+        // Find selected box
+        x -= colDist;
+        y -= rowDist;
+
+        // DO NOT ALLOW SELECTION OF LAST POSITION (reserved for percentage bar)
+        if ((int) (x / (boxWidth + colDist)) < maxGates - 1) {
+            hoverCol = (int) (x / (boxWidth + colDist));
+            hoverRow = (int) (y / (boxHeight + rowDist));
+        }
+
+        hoverDisable = x > hoverCol * (boxWidth + colDist) + boxWidth || y > hoverRow * (boxHeight + colDist) + boxHeight;
+
+        expandHover();
+        draw();
     }
 
     public void select(double x, double y) {
@@ -258,6 +293,14 @@ public class Circuit {
             for (int j = 0; j < maxGates; j++)
                 if (components[i][j] != null)
                     components[i][j].draw(graphicsContext);
+
+        // Draw hover
+        if (!hoverDisable) {
+            graphicsContext.setLineWidth(3);
+            graphicsContext.setStroke(Color.BLACK);
+            graphicsContext.strokeRect(colDist + hoverCol * (boxWidth + colDist), rowDist + hoverRow * (boxWidth + rowDist), boxWidth, hoverHeight);
+            graphicsContext.setLineWidth(1);
+        }
 
         // Draw selection
         graphicsContext.setLineWidth(3);
