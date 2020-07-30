@@ -115,10 +115,13 @@ public class View extends Application {
         connect.setOnMouseClicked(event -> circuit.connect());
 
         Button settings = new Button("Settings");
+        Button clear = new Button("Clear");
 
         GridPane.setHgrow(topButtonsRight, Priority.ALWAYS);
         topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton(), bp);
-        topButtonsRight.getChildren().addAll(settings);
+        topButtonsRight.getChildren().addAll(clear, settings);
+
+        clear.setOnMouseClicked(event -> circuit.clear());
 
         settings.setOnMouseClicked(event -> {
             List<String> choices = new ArrayList<>();

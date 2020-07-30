@@ -67,7 +67,7 @@ public class Circuit {
 
         Component[][] newComponents = new Component[maxWires][maxGates];
         for (int i = 0; i < maxWires; i++) {
-            System.arraycopy(components[i], 0, newComponents[i], 0, components[0].length);
+            System.arraycopy(components[i], 0, newComponents[i], 0, Math.min(components[0].length, maxGates));
         }
 
         components = newComponents;
@@ -276,6 +276,16 @@ public class Circuit {
         return controlButton;
     }
 
+    public void clear() {
+        for (int i = 0; i < numWires; i++) {
+            for (int j = 0; j < maxGates; j++) {
+                components[i][j] = null;
+            }
+        }
+        expandSelection();
+        resetRun();
+    }
+
     public void select(double x, double y) {
 
         // Find selected box
@@ -340,7 +350,7 @@ public class Circuit {
 
         // Draw components
         for (int i = 0; i < maxGates; i++)
-            for (int j = 0; j < numWires; j++)
+            for (int j = numWires - 1; j >= 0; j--)
                 if (components[j][i] != null)
                     components[j][i].draw(graphicsContext);
 
