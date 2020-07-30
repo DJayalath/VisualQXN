@@ -91,13 +91,19 @@ public class View extends Application {
 //        circuitPane.setGridLinesVisible(true);
 
         // Side buttons
-        VBox topV = new VBox();
-        topV.setFillWidth(true);
-        HBox topButtons = new HBox();
-        topButtons.setAlignment(Pos.CENTER);
-        topButtons.setSpacing(10);
-        topButtons.setPadding(new Insets(10, 0, 10, 0));
-        topV.getChildren().add(topButtons);
+        GridPane topV = new GridPane();
+        GridPane.setHgrow(topV, Priority.ALWAYS);
+        topV.setPadding(new Insets(10));
+
+        HBox topButtonsLeft = new HBox();
+        topButtonsLeft.setAlignment(Pos.CENTER);
+        topButtonsLeft.setSpacing(10);
+        topV.add(topButtonsLeft, 0, 0);
+
+        HBox topButtonsRight = new HBox();
+        topButtonsRight.setAlignment(Pos.CENTER_RIGHT);
+        topButtonsRight.setSpacing(10);
+        topV.add(topButtonsRight, 1, 0);
 
         Button bp = new Button("Break Point");
         bp.setOnMouseClicked(event -> circuit.toggleBreakPoint());
@@ -110,7 +116,10 @@ public class View extends Application {
 
         Button settings = new Button("Settings");
 
-        topButtons.getChildren().addAll(addComponent, removeComponent, connect, circuit.getControlButton(), bp, circuit.getAddWireButton(), circuit.getRemoveWireButton(), settings);
+        GridPane.setHgrow(topButtonsRight, Priority.ALWAYS);
+        topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton(), bp);
+        topButtonsRight.getChildren().addAll(settings);
+
         settings.setOnMouseClicked(event -> {
             List<String> choices = new ArrayList<>();
             for (int i = 10; i <= 20; i += 5)
