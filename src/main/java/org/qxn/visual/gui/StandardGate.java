@@ -4,6 +4,7 @@ import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.qxn.gates.C;
 import org.qxn.gates.Gate;
 
 public class StandardGate extends Component {
@@ -12,7 +13,8 @@ public class StandardGate extends Component {
         return gate;
     }
 
-    protected final Gate gate;
+    protected Gate gate;
+    protected boolean isControlled = false;
 
     public QMeter getqMeter() {
         return qMeter;
@@ -29,32 +31,78 @@ public class StandardGate extends Component {
         this.gate = gate;
     }
 
+    public void control() {
+        row -= 1;
+        span += 1;
+
+        gate = new C(gate, row);
+        isControlled = true;
+    }
+
     @Override
     public void draw(GraphicsContext graphicsContext) {
 
-        double x = Circuit.getXFromCol(col);
-        double y = Circuit.getYFromRow(row);
+        if (isControlled) {
 
-        double width = Circuit.boxWidth;
-        double height = (Circuit.boxHeight) + (Circuit.boxHeight + Circuit.rowDist) * (span - 1);
-
-        graphicsContext.setFill(Color.WHITE);
-        graphicsContext.fillRect(x, y, width, height);
-        graphicsContext.setStroke(Color.BLACK);
-        graphicsContext.strokeRect(x, y, width, height);
-
-        graphicsContext.setTextAlign(TextAlignment.CENTER);
-        graphicsContext.setTextBaseline(VPos.CENTER);
-        graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText(gate.getClass().getSimpleName(), x + width / 2.0, y + height / 2.0);
-
-        // Draw connection
-        if (qMeter != null) {
-            double targetY = Circuit.getYFromRow(qMeter.getRow()) + Circuit.boxHeight / 2.0;
+            double x = Circuit.getXFromCol(col) + Circuit.boxWidth / 2.0;
+            double y = Circuit.getYFromRow(row) + Circuit.boxHeight / 2.0;
 
             graphicsContext.setStroke(Color.BLACK);
-            graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 - 2.5, y, x + Circuit.boxWidth / 2.0 - 2.5, targetY);
-            graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 + 2.5, y, x + Circuit.boxWidth / 2.0 + 2.5, targetY);
+            graphicsContext.strokeOval(x - 5, y - 5, 10, 10);
+
+            graphicsContext.strokeLine(x, y, x, y + Circuit.boxHeight + Circuit.rowDist);
+
+            x = Circuit.getXFromCol(col);
+            y = Circuit.getYFromRow(row + 1);
+
+            double width = Circuit.boxWidth;
+            double height = (Circuit.boxHeight) + (Circuit.boxHeight + Circuit.rowDist) * (span - 2);
+
+            graphicsContext.setFill(Color.WHITE);
+            graphicsContext.fillRect(x, y, width, height);
+            graphicsContext.setStroke(Color.BLACK);
+            graphicsContext.strokeRect(x, y, width, height);
+
+            graphicsContext.setTextAlign(TextAlignment.CENTER);
+            graphicsContext.setTextBaseline(VPos.CENTER);
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.fillText(gate.getClass().getSimpleName(), x + width / 2.0, y + height / 2.0);
+
+            // Draw connection
+            if (qMeter != null) {
+                double targetY = Circuit.getYFromRow(qMeter.getRow()) + Circuit.boxHeight / 2.0;
+
+                graphicsContext.setStroke(Color.BLACK);
+                graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 - 2.5, Circuit.getYFromRow(row), x + Circuit.boxWidth / 2.0 - 2.5, targetY);
+                graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 + 2.5, Circuit.getYFromRow(row), x + Circuit.boxWidth / 2.0 + 2.5, targetY);
+            }
+
+        } else {
+
+            double x = Circuit.getXFromCol(col);
+            double y = Circuit.getYFromRow(row);
+
+            double width = Circuit.boxWidth;
+            double height = (Circuit.boxHeight) + (Circuit.boxHeight + Circuit.rowDist) * (span - 1);
+
+            graphicsContext.setFill(Color.WHITE);
+            graphicsContext.fillRect(x, y, width, height);
+            graphicsContext.setStroke(Color.BLACK);
+            graphicsContext.strokeRect(x, y, width, height);
+
+            graphicsContext.setTextAlign(TextAlignment.CENTER);
+            graphicsContext.setTextBaseline(VPos.CENTER);
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.fillText(gate.getClass().getSimpleName(), x + width / 2.0, y + height / 2.0);
+
+            // Draw connection
+            if (qMeter != null) {
+                double targetY = Circuit.getYFromRow(qMeter.getRow()) + Circuit.boxHeight / 2.0;
+
+                graphicsContext.setStroke(Color.BLACK);
+                graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 - 2.5, y, x + Circuit.boxWidth / 2.0 - 2.5, targetY);
+                graphicsContext.strokeLine(x + Circuit.boxWidth / 2.0 + 2.5, y, x + Circuit.boxWidth / 2.0 + 2.5, targetY);
+            }
         }
 
     }
