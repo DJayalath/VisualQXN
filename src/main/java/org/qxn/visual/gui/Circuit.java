@@ -24,7 +24,7 @@ import java.util.List;
 
 public class Circuit {
 
-    public static final int maxGates = 10;
+    public static int maxGates = 15;
     public static final int maxWires = 10;
     public static final double boxWidth = 50;
     public static final double boxHeight = 50;
@@ -33,7 +33,7 @@ public class Circuit {
     private final Canvas canvas;
     private final GraphicsContext graphicsContext;
     private final BarChart<String, Number> barChart;
-    private final Component[][] components;
+    private Component[][] components;
     private final Label notification = new Label();
     private final Button addWireButton = new Button("Wire +");
     private final Button removeWireButton = new Button("Wire -");
@@ -59,6 +59,27 @@ public class Circuit {
     private final Button stepBackward = new Button("Step Backward");
     private QMeter connectingComponent;
     private int connecting = 0;
+
+
+    public void resize(int newMaxGates) {
+        maxGates = newMaxGates;
+        canvas.setWidth(colDist + boxWidth * maxGates + colDist * maxGates);
+
+        Component[][] newComponents = new Component[maxWires][maxGates];
+        for (int i = 0; i < maxWires; i++) {
+            System.arraycopy(components[i], 0, newComponents[i], 0, components[0].length);
+        }
+
+        components = newComponents;
+        barChart.setPrefWidth(canvas.getWidth());
+
+        if (selectedCol >= maxGates)
+            selectedCol = maxGates - 1;
+
+        expandSelection();
+
+        resetRun();
+    }
 
     public Circuit(int numWires) {
         this.canvas = new Canvas(colDist + boxWidth * maxGates + colDist * maxGates, rowDist + boxHeight * numWires + rowDist * numWires);
@@ -213,9 +234,7 @@ public class Circuit {
 
         // Can control?
         if (selectedRow > 0 && components[selectedRow - 1][selectedCol] == null) {
-            if (components[selectedRow][selectedCol] instanceof StandardGate) {
-                controlButton.setDisable(false);
-            } else controlButton.setDisable(true);
+            controlButton.setDisable(!(components[selectedRow][selectedCol] instanceof StandardGate));
         } else controlButton.setDisable(true);
     }
 
@@ -349,19 +368,23 @@ public class Circuit {
         graphicsContext.setLineWidth(1);
 
         // Draw IF measured probabilities
+        double[] measures;
         if (!queuedMeasure.isEmpty()) {
-            double[] measures = queuedMeasure.get(0);
-            for (int i = 0; i < numWires; i++) {
-                graphicsContext.setFill(Color.WHITESMOKE);
-                graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i), boxWidth, boxHeight);
-                graphicsContext.setFill(new Color(0.0, 1.0, 0.0, 1.0));
-                graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i) + boxHeight - boxHeight * measures[i], boxWidth, boxHeight * measures[i]);
-                String percentage = String.format("%.1f", measures[i] * 100.0);
-                graphicsContext.setTextAlign(TextAlignment.CENTER);
-                graphicsContext.setTextBaseline(VPos.CENTER);
-                graphicsContext.setFill(Color.BLACK);
-                graphicsContext.fillText(percentage + "%", getXFromCol(maxGates - 1) + boxWidth / 2.0, getYFromRow(i) + boxHeight / 2.0);
-            }
+            measures = queuedMeasure.get(0);
+        } else {
+            measures = new double[numWires];
+            Arrays.fill(measures, 0.0);
+        }
+        for (int i = 0; i < numWires; i++) {
+            graphicsContext.setFill(Color.WHITESMOKE);
+            graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i), boxWidth, boxHeight);
+            graphicsContext.setFill(new Color(0.0, 1.0, 0.0, 1.0));
+            graphicsContext.fillRect(getXFromCol(maxGates - 1), getYFromRow(i) + boxHeight - boxHeight * measures[i], boxWidth, boxHeight * measures[i]);
+            String percentage = String.format("%.1f", measures[i] * 100.0);
+            graphicsContext.setTextAlign(TextAlignment.CENTER);
+            graphicsContext.setTextBaseline(VPos.CENTER);
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.fillText(percentage + "%", getXFromCol(maxGates - 1) + boxWidth / 2.0, getYFromRow(i) + boxHeight / 2.0);
         }
     }
 

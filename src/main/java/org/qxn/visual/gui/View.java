@@ -39,6 +39,7 @@ public class View extends Application {
         rootPane.setStyle("-fx-background-color: white;");
 
         Scene scene = new Scene(rootPane);
+        stage.setResizable(false);
         stage.setScene(scene);
         stage.setTitle("VisualQXN");
 
@@ -107,16 +108,42 @@ public class View extends Application {
         Button connect = new Button("Connect");
         connect.setOnMouseClicked(event -> circuit.connect());
 
-        topButtons.getChildren().addAll(addComponent, removeComponent, connect, circuit.getControlButton(), bp, circuit.getAddWireButton(), circuit.getRemoveWireButton());
+        Button settings = new Button("Settings");
+
+        topButtons.getChildren().addAll(addComponent, removeComponent, connect, circuit.getControlButton(), bp, circuit.getAddWireButton(), circuit.getRemoveWireButton(), settings);
+        settings.setOnMouseClicked(event -> {
+            List<String> choices = new ArrayList<>();
+            for (int i = 10; i <= 20; i += 5)
+                choices.add(String.valueOf(i));
+
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(String.valueOf(Circuit.maxGates), choices);
+
+            dialog.setTitle("Settings");
+            dialog.setHeaderText("Circuit Size");
+            dialog.setContentText("Wire length");
+
+            // Traditional way to get the response value.
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()){
+                int newSize = Integer.parseInt(result.get());
+                circuit.resize(newSize);
+                scene.getWindow().setWidth(circuit.getCanvas().getWidth());
+//                scene.getWindow().centerOnScreen();
+            }
+        });
 
         rootPane.setTop(topV);
 //        topPane.add(bp, 0, 0);
 
         // Status pane
+        GridPane.setVgrow(statusPane, Priority.ALWAYS);
         statusPane.add(circuit.getBarChart(), 0, 0);
+        circuit.getBarChart().setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(circuit.getBarChart(), Priority.ALWAYS);
         statusPane.setAlignment(Pos.CENTER);
         GridPane.setHalignment(circuit.getBarChart(), HPos.CENTER);
         GridPane.setValignment(circuit.getBarChart(), VPos.CENTER);
+        System.out.println(circuit.getBarChart().getHeight());
 
         addComponent.setOnMouseClicked(event -> {
             Dialog<Component> dialog = new Dialog<>();
