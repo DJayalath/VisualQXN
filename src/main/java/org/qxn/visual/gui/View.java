@@ -215,14 +215,52 @@ public class View extends Application {
             grid.add(phi, 1, 1);
             grid.add(addR, 2, 1);
 
+            // QFT
+            Label qftLabel = new Label("QFT-Gate");
+            TextField qftN = new TextField();
+            qftN.setPromptText("Size");
+            qftN.setMinWidth(Double.MIN_VALUE);
+            qftN.setPrefWidth(Double.MIN_VALUE);
+            Button addQFT = new Button("+");
+            addQFT.setOnMouseClicked(e -> {
+                int size = 1;
+                try {
+                    size = Integer.parseInt(qftN.getText());
+                } catch (Exception ignored) {}
+                dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), size, new QFT(circuit.getSelectedRow(), size)));
+            });
+
+            grid.add(qftLabel, 0, 2);
+            grid.add(qftN, 1, 2);
+            grid.add(addQFT, 2, 2);
+
+            // QFTHA
+            Label qftHALabel = new Label("QFT\u2020-Gate");
+            TextField qftNHA = new TextField();
+            qftNHA.setPromptText("Size");
+            qftNHA.setMinWidth(Double.MIN_VALUE);
+            qftNHA.setPrefWidth(Double.MIN_VALUE);
+            Button addQFTHA = new Button("+");
+            addQFTHA.setOnMouseClicked(e -> {
+                int size = 1;
+                try {
+                    size = Integer.parseInt(qftNHA.getText());
+                } catch (Exception ignored) {}
+                dialog.setResult(new StandardGate(circuit.getSelectedRow(), circuit.getSelectedCol(), size, new QFTHA(circuit.getSelectedRow(), size)));
+            });
+
+            grid.add(qftHALabel, 0, 3);
+            grid.add(qftNHA, 1, 3);
+            grid.add(addQFTHA, 2, 3);
+
             // Measurement
             Label measureLabel = new Label("Measure Qubit");
             Button addMeasure = new Button("+");
             addMeasure.setOnMouseClicked(e -> dialog.setResult(new QMeter(circuit.getSelectedRow(), circuit.getSelectedCol())));
             GridPane.setHalignment(measureLabel, HPos.LEFT);
 
-            grid.add(measureLabel, 0, 2, 2, 1);
-            grid.add(addMeasure, 2, 2);
+            grid.add(measureLabel, 0, 4, 2, 1);
+            grid.add(addMeasure, 2, 4);
 
             // Matrix
             Label matrixLabel = new Label("Matrix-Defined Gate");
@@ -306,8 +344,8 @@ public class View extends Application {
 
             });
 
-            grid.add(matrixLabel, 0, 3, 2, 1);
-            grid.add(addMatrix, 2, 3);
+            grid.add(matrixLabel, 0, 5, 2, 1);
+            grid.add(addMatrix, 2, 5);
 
             // Functional Oracle
             Label functionOracleLabel = new Label("Function-Defined Gate");
@@ -415,8 +453,8 @@ public class View extends Application {
                 dialog.getDialogPane().getScene().getWindow().centerOnScreen();
             });
 
-            grid.add(functionOracleLabel, 0, 4, 2, 1);
-            grid.add(addOracle, 2, 4);
+            grid.add(functionOracleLabel, 0, 6, 2, 1);
+            grid.add(addOracle, 2, 6);
 
             dialog.getDialogPane().setContent(grid);
 
