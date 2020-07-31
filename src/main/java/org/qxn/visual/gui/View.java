@@ -155,7 +155,7 @@ public class View extends Application {
 
         settings.setOnMouseClicked(event -> {
             List<String> choices = new ArrayList<>();
-            for (int i = 10; i <= 20; i += 5)
+            for (int i = 15; i <= 25; i += 5)
                 choices.add(String.valueOf(i));
 
             ChoiceDialog<String> dialog = new ChoiceDialog<>(String.valueOf(Circuit.maxGates), choices);
