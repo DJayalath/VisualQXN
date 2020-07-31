@@ -4,6 +4,8 @@
 
 [Releases](https://github.com/armytricks/VisualQXN/releases/latest) | [License](LICENSE)
 
+![Deutsch Josza](deutschjosza.gif)
+
 **VisualQXN** is a graphical toolkit for simulating and debugging small quantum algorithms as circuits.
 
 VisualQXN is a graphical wrapper for the [qxn](https://github.com/armytricks/qxn) library and maintains all of its
