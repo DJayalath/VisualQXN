@@ -1,7 +1,7 @@
 [![qxn](vqxn.png)](https://github.com/armytricks/VisualQXN)
 # VisualQXN
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/armytricks/VisualQXN)](https://github.com/armytricks/VisualQXN/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 [Releases](https://github.com/armytricks/VisualQXN/releases/latest) | [License](LICENSE)
 
@@ -18,8 +18,8 @@ functionality and implements additional graphical debugging tools including:
 
 ## Quick Start
 1. Download the latest [release](https://github.com/armytricks/VisualQXN/releases/latest)
-2. (Mac/Linux Only) Ensure the `.jar` file is executable (you may need to use `chmod +x VisualQXN-xxx.jar`)
-3. Run the jar file (if opening it fails, try `java -jar VisualQXN-xxx.jar`)
+2. (Mac/Linux Only) Ensure the `.jar` file is executable (you may need to use `chmod +x VisualQXN-*.jar`)
+3. Run the jar file (if opening it fails, try `java -jar VisualQXN-*.jar`)
 
 ## Features
 
