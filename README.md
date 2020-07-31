@@ -1,7 +1,7 @@
 [![qxn](vqxn.png)](https://github.com/armytricks/VisualQXN)
 # VisualQXN
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/armytricks/VisualQXN)](https://github.com/armytricks/VisualQXN/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 [Releases](https://github.com/armytricks/VisualQXN/releases/latest) | [License](LICENSE)
 
