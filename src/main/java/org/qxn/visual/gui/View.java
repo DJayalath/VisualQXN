@@ -199,8 +199,7 @@ public class View extends Application {
             content.add(cLabel, 0, 1, 2, 1);
             Hyperlink link = new Hyperlink("MIT LICENSE");
 
-            // TODO: Replace with real link for VQXN
-            link.setOnAction(e -> getHostServices().showDocument("https://github.com/armytricks/qxn/blob/master/LICENSE"));
+            link.setOnAction(e -> getHostServices().showDocument("https://github.com/armytricks/VisualQXN/blob/master/LICENSE"));
             content.add(link, 0, 2, 2, 1);
 
             GridPane.setHalignment(cLabel, HPos.CENTER);
