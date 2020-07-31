@@ -4,6 +4,7 @@ import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.qxn.gates.CustomGate;
 import org.qxn.gates.Gate;
 
 public class StandardGate extends Component {

@@ -16,69 +16,131 @@ import org.qxn.QuantumMachine;
 import org.qxn.gates.H;
 import org.qxn.gates.X;
 import org.qxn.gates.Z;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Circuit {
 
-    public static int maxGates = 15;
-    public static final int maxWires = 10;
+    public static int maxWires = 10;
     public static final double boxWidth = 50;
     public static final double boxHeight = 50;
     public static final int rowDist = 20;
     public static final int colDist = 20;
+    public static int maxGates = 15;
     private final Canvas canvas;
     private final GraphicsContext graphicsContext;
     private final BarChart<String, Number> barChart;
-    private Component[][] components;
     private final Label notification = new Label();
     private final Button addWireButton = new Button("Wire +");
     private final Button removeWireButton = new Button("Wire -");
     private final Button controlButton = new Button("Control");
+    private final Circle indicator = new Circle(5, Color.ORANGE);
+    private final List<double[]> probabilities = new ArrayList<>();
+    private LinkedList<Integer> breakPoints = new LinkedList<>();
+    private final Button stepForward = new Button("Step Forward");
+    private final Button stepBackward = new Button("Step Backward");
+    private final List<double[]> onIfMeasured = new ArrayList<>();
+    private final Stack<State> undoStack = new Stack<>();
+    private final Stack<State> redoStack = new Stack<>();
+
+    public Button getUndoButton() {
+        return undoButton;
+    }
+
+    public Button getRedoButton() {
+        return redoButton;
+    }
+
+    private final Button undoButton = new Button("Undo");
+    private final Button redoButton = new Button("Redo");
+    List<double[]> queuedMeasure = new ArrayList<>();
+    private Component[][] components;
     private int numWires;
-
-    public int getSelectedRow() {
-        return selectedRow;
-    }
-
-    public int getSelectedCol() {
-        return selectedCol;
-    }
-
     private int selectedRow;
     private int selectedCol;
     private double selectedHeight;
-    private final Circle indicator = new Circle(5, Color.ORANGE);
-    private final List<double[]> probabilities = new ArrayList<>();
-    private final LinkedList<Integer> breakPoints = new LinkedList<>();
     private int step = 0;
-    private final Button stepForward = new Button("Step Forward");
-    private final Button stepBackward = new Button("Step Backward");
     private QMeter connectingComponent;
     private int connecting = 0;
+    private int hoverCol, hoverRow;
+    private double hoverHeight;
+    private boolean hoverDisable = true;
 
+    // Preserves (serializable) state of this class
+    class State {
+        public int numWires;
+        public int selectedRow;
+        public int selectedCol;
+        public double selectedHeight;
+        public LinkedList<Integer> breakPoints;
+        public Component[][] components;
+    }
 
-    public void resize(int newMaxGates) {
-        maxGates = newMaxGates;
-        canvas.setWidth(colDist + boxWidth * maxGates + colDist * maxGates);
+    private State getState() {
+        State state = new State();
+        state.numWires = numWires;
+        state.selectedRow = selectedRow;
+        state.selectedCol = selectedCol;
+        state.selectedHeight = selectedHeight;
 
-        Component[][] newComponents = new Component[maxWires][maxGates];
-        for (int i = 0; i < maxWires; i++) {
-            System.arraycopy(components[i], 0, newComponents[i], 0, Math.min(components[0].length, maxGates));
-        }
+        state.breakPoints = new LinkedList<>(breakPoints);
 
-        components = newComponents;
-        barChart.setPrefWidth(canvas.getWidth());
+        state.components = new Component[numWires][maxGates];
+        for (int i = 0; i < numWires; i++)
+            for (int j = 0; j < maxGates; j++)
+                state.components[i][j] = components[i][j];
 
-        if (selectedCol >= maxGates)
-            selectedCol = maxGates - 1;
+        return state;
+    }
 
-        expandSelection();
+    private void addUndoState() {
+        undoStack.push(getState());
+        if (undoButton.isDisable())
+            undoButton.setDisable(false);
+    }
+
+    private void addRedoState() {
+        redoStack.push(getState());
+        if (redoButton.isDisable())
+            redoButton.setDisable(false);
+    }
+
+    private void undo() {
+        addRedoState();
+        restoreState(undoStack.pop());
+        if (undoStack.isEmpty())
+            undoButton.setDisable(true);
+    }
+
+    private void redo() {
+        addUndoState();
+        restoreState(redoStack.pop());
+        if (redoStack.isEmpty())
+            redoButton.setDisable(true);
+    }
+
+    public void restoreState(State state) {
+
+        numWires = state.numWires;
+        canvas.setHeight(rowDist + boxHeight * numWires + rowDist * numWires);
+        if (numWires == maxWires)
+            addWireButton.setDisable(true);
+        removeWireButton.setDisable(false);
+
+        selectedRow = state.selectedRow;
+        selectedCol = state.selectedCol;
+        selectedHeight = state.selectedHeight;
+        breakPoints = state.breakPoints;
+        components = state.components;
 
         resetRun();
+        draw();
+    }
+
+    public void resetHistory() {
+        undoStack.clear();
+        redoStack.clear();
+        undoButton.setDisable(true);
+        redoButton.setDisable(true);
     }
 
     public Circuit(int numWires) {
@@ -91,6 +153,11 @@ public class Circuit {
         canvas.setOnMouseExited(e -> {hoverDisable = true; draw();});
         controlButton.setDisable(true);
         controlButton.setOnMouseClicked(e -> control());
+
+        undoButton.setOnMouseClicked(e -> undo());
+        undoButton.setDisable(true);
+        redoButton.setOnMouseClicked(e -> redo());
+        redoButton.setDisable(true);
 
         stepForward.setOnMouseClicked(event -> next());
         stepBackward.setOnMouseClicked(event -> previous());
@@ -142,6 +209,37 @@ public class Circuit {
         return rowDist + row * (boxHeight + rowDist);
     }
 
+    public int getSelectedRow() {
+        return selectedRow;
+    }
+
+    public int getSelectedCol() {
+        return selectedCol;
+    }
+
+    public void resize(int newMaxGates) {
+
+        Component[][] newComponents = new Component[maxWires][newMaxGates];
+        for (int i = 0; i < maxWires; i++) {
+            for (int j = 0; j < Math.min(maxGates, newMaxGates); j++) {
+                newComponents[i][j] = components[i][j];
+            }
+        }
+
+        maxGates = newMaxGates;
+        canvas.setWidth(colDist + boxWidth * maxGates + colDist * maxGates);
+
+        components = newComponents;
+        barChart.setPrefWidth(canvas.getWidth());
+
+        if (selectedCol >= maxGates)
+            selectedCol = maxGates - 1;
+
+        expandSelection();
+        resetHistory();
+        resetRun();
+    }
+
     public Button getStepForward() {
         return stepForward;
     }
@@ -163,6 +261,8 @@ public class Circuit {
     }
 
     public void addComponent(Component component) throws CircuitException {
+
+        addUndoState();
 
         // Check if number of wires supports component
         if (selectedRow + component.getSpan() > numWires)
@@ -189,10 +289,13 @@ public class Circuit {
         resetRun();
         components[selectedRow][selectedCol] = component;
         expandSelection();
+
         draw();
     }
 
     public void removeComponent() {
+
+        addUndoState();
 
         if (components[selectedRow][selectedCol] != null) {
             if (components[selectedRow][selectedCol] instanceof QMeter) {
@@ -249,9 +352,6 @@ public class Circuit {
 
     }
 
-    private int hoverCol, hoverRow;
-    private double hoverHeight;
-    private boolean hoverDisable = true;
     public void hover(double x, double y) {
         // Find selected box
         x -= colDist;
@@ -277,6 +377,7 @@ public class Circuit {
     }
 
     public void clear() {
+        addUndoState();
         for (int i = 0; i < numWires; i++) {
             for (int j = 0; j < maxGates; j++) {
                 components[i][j] = null;
@@ -416,6 +517,8 @@ public class Circuit {
     }
 
     public void addWire() {
+        addUndoState();
+
         resetRun();
         numWires++;
         canvas.setHeight(rowDist + boxHeight * numWires + rowDist * numWires);
@@ -437,6 +540,8 @@ public class Circuit {
     }
 
     public void removeWire() {
+
+        addUndoState();
 
         resetRun();
         numWires--;
@@ -463,8 +568,6 @@ public class Circuit {
 
         draw();
     }
-
-    private final List<double[]> onIfMeasured = new ArrayList<>();
 
     public void run() {
 
@@ -581,8 +684,6 @@ public class Circuit {
         }
 
     }
-
-    List<double[]> queuedMeasure = new ArrayList<>();
 
     private void updateBarChart() {
         XYChart.Series<String, Number> series = new XYChart.Series<>();

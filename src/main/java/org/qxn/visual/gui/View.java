@@ -119,7 +119,7 @@ public class View extends Application {
 
         GridPane.setHgrow(topButtonsRight, Priority.ALWAYS);
         topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton(), bp);
-        topButtonsRight.getChildren().addAll(clear, settings);
+        topButtonsRight.getChildren().addAll(circuit.getUndoButton(), circuit.getRedoButton(), clear, settings);
 
         clear.setOnMouseClicked(event -> circuit.clear());
 
