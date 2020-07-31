@@ -2,7 +2,9 @@ package org.qxn.visual.gui;
 
 import javafx.scene.canvas.GraphicsContext;
 
-public abstract class Component {
+import java.io.Serializable;
+
+public abstract class Component implements Serializable {
 
     protected int row;
     protected int col;

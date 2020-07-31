@@ -14,13 +14,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
+import javafx.stage.*;
 import org.qxn.gates.*;
 import org.qxn.linalg.ComplexMatrix;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -61,7 +60,7 @@ public class View extends Application {
 
         // Circuit
         circuitPane.setAlignment(Pos.CENTER);
-        Circuit circuit = new Circuit(4);
+        Circuit circuit = new Circuit(4, Circuit.maxGates);
         circuit.draw();
         circuit.getCanvas().setOnMouseClicked(event -> circuit.select(event.getX(), event.getY()));
         circuitPane.add(circuit.getCanvas(), 0, 0, 2, 1);
@@ -117,9 +116,40 @@ public class View extends Application {
         Button settings = new Button("Settings");
         Button clear = new Button("Clear");
 
+        Button save = new Button("Save");
+        save.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Circuit");
+            File file = fileChooser.showSaveDialog(stage);
+            if (file != null) {
+                try {
+                    circuit.save(file.getAbsolutePath());
+                } catch (IOException ioException) {
+                    // Alert error
+                    ioException.printStackTrace();
+                }
+            }
+        });
+
+        Button load = new Button("Load");
+        load.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Load Circuit");
+            File file = fileChooser.showOpenDialog(stage);
+            if (file != null) {
+                try {
+                    circuit.load(file.getAbsolutePath());
+                    scene.getWindow().setWidth(circuit.getCanvas().getWidth());
+                } catch (IOException | ClassNotFoundException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+
+        });
+
         GridPane.setHgrow(topButtonsRight, Priority.ALWAYS);
         topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton(), bp);
-        topButtonsRight.getChildren().addAll(circuit.getUndoButton(), circuit.getRedoButton(), clear, settings);
+        topButtonsRight.getChildren().addAll(circuit.getUndoButton(), circuit.getRedoButton(), save, load, clear, settings);
 
         clear.setOnMouseClicked(event -> circuit.clear());
 

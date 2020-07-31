@@ -16,7 +16,19 @@ import org.qxn.QuantumMachine;
 import org.qxn.gates.H;
 import org.qxn.gates.X;
 import org.qxn.gates.Z;
+
+import java.io.*;
 import java.util.*;
+
+// Preserves (serializable) state of this class
+class State implements Serializable {
+    public int numWires;
+    public int selectedRow;
+    public int selectedCol;
+    public double selectedHeight;
+    public LinkedList<Integer> breakPoints;
+    public Component[][] components;
+}
 
 public class Circuit {
 
@@ -65,14 +77,32 @@ public class Circuit {
     private double hoverHeight;
     private boolean hoverDisable = true;
 
-    // Preserves (serializable) state of this class
-    class State {
-        public int numWires;
-        public int selectedRow;
-        public int selectedCol;
-        public double selectedHeight;
-        public LinkedList<Integer> breakPoints;
-        public Component[][] components;
+    public void save(String path) throws IOException {
+        State state = getState();
+
+        FileOutputStream file = new FileOutputStream(path);
+        ObjectOutputStream out = new ObjectOutputStream(file);
+
+        out.writeObject(state);
+
+        out.close();
+        file.close();
+    }
+
+    public void load(String path) throws IOException, ClassNotFoundException {
+
+        FileInputStream file = new FileInputStream(path);
+        ObjectInputStream in = new ObjectInputStream(file);
+
+        State state = (State) in.readObject();
+
+        in.close();
+        file.close();
+
+        restoreState(state);
+        resetRun();
+        breakPoints.clear();
+
     }
 
     private State getState() {
@@ -84,7 +114,7 @@ public class Circuit {
 
         state.breakPoints = new LinkedList<>(breakPoints);
 
-        state.components = new Component[numWires][maxGates];
+        state.components = new Component[maxWires][maxGates];
         for (int i = 0; i < numWires; i++)
             for (int j = 0; j < maxGates; j++)
                 state.components[i][j] = components[i][j];
@@ -120,11 +150,23 @@ public class Circuit {
 
     public void restoreState(State state) {
 
-        numWires = state.numWires;
-        canvas.setHeight(rowDist + boxHeight * numWires + rowDist * numWires);
-        if (numWires == maxWires)
-            addWireButton.setDisable(true);
-        removeWireButton.setDisable(false);
+        while (state.numWires > numWires)
+            addWire();
+
+        while (state.numWires < numWires)
+            removeWire();
+
+        if (state.components[0].length != components[0].length) {
+            maxGates = state.components[0].length;
+            canvas.setWidth(colDist + boxWidth * maxGates + colDist * maxGates);
+            barChart.setPrefWidth(canvas.getWidth());
+
+            if (selectedCol >= maxGates)
+                selectedCol = maxGates - 1;
+
+            expandSelection();
+            resetHistory();
+        }
 
         selectedRow = state.selectedRow;
         selectedCol = state.selectedCol;
@@ -143,7 +185,8 @@ public class Circuit {
         redoButton.setDisable(true);
     }
 
-    public Circuit(int numWires) {
+    public Circuit(int numWires, int maxGates) {
+        Circuit.maxGates = maxGates;
         this.canvas = new Canvas(colDist + boxWidth * maxGates + colDist * maxGates, rowDist + boxHeight * numWires + rowDist * numWires);
         this.graphicsContext = canvas.getGraphicsContext2D();
         this.numWires = numWires;
@@ -220,7 +263,7 @@ public class Circuit {
     public void resize(int newMaxGates) {
 
         Component[][] newComponents = new Component[maxWires][newMaxGates];
-        for (int i = 0; i < maxWires; i++) {
+        for (int i = 0; i < numWires; i++) {
             for (int j = 0; j < Math.min(maxGates, newMaxGates); j++) {
                 newComponents[i][j] = components[i][j];
             }
