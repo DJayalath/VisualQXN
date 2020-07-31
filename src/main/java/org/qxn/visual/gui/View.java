@@ -151,15 +151,52 @@ public class View extends Application {
         clear.setOnMouseClicked(event -> circuit.clear());
 
         settings.setOnMouseClicked(event -> {
+
+            Dialog<String> dialog = new Dialog<>();
+            dialog.initStyle(StageStyle.UTILITY);
+            dialog.setTitle("Settings");
+            // No header
+
+            // No icon
+            GridPane content = new GridPane();
+            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
             List<String> choices = new ArrayList<>();
             for (int i = 15; i <= 25; i += 5)
                 choices.add(String.valueOf(i));
 
-            ChoiceDialog<String> dialog = new ChoiceDialog<>(String.valueOf(Circuit.maxGates), choices);
+//            ChoiceDialog<String> dialog = new ChoiceDialog<>(String.valueOf(Circuit.maxGates), choices);
+            ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(choices));
+            choiceBox.setValue(String.valueOf(Circuit.maxGates));
 
-            dialog.setTitle("Settings");
-            dialog.setHeaderText("Circuit Size");
-            dialog.setContentText("Wire length");
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == ButtonType.OK) {
+                    return choiceBox.getValue();
+                }
+                return null;
+            });
+
+            content.setVgap(5);
+            content.setHgap(10);
+            content.add(new Label("Wire length"), 0, 0);
+            GridPane.setMargin(choiceBox, new Insets(10, 0, 10, 0));
+            content.add(choiceBox, 1, 0);
+            Label cLabel = new Label("Copyright (c) 2020 Dulhan Jayalath");
+            content.add(cLabel, 0, 1, 2, 1);
+            Hyperlink link = new Hyperlink("MIT LICENSE");
+
+            // TODO: Replace with real link for VQXN
+            link.setOnAction(e -> getHostServices().showDocument("https://github.com/armytricks/qxn/blob/master/LICENSE"));
+            content.add(link, 0, 2, 2, 1);
+
+            GridPane.setHalignment(cLabel, HPos.CENTER);
+            GridPane.setHalignment(link, HPos.CENTER);
+
+            dialog.getDialogPane().setContent(content);
+
+//            dialog.setTitle("Settings");
+//            dialog.setHeaderText("Circuit Size");
+//            dialog.setContentText("Wire length");
 
             // Traditional way to get the response value.
             Optional<String> result = dialog.showAndWait();
