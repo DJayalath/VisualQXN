@@ -104,9 +104,6 @@ public class View extends Application {
         topButtonsRight.setSpacing(10);
         topV.add(topButtonsRight, 1, 0);
 
-        Button bp = new Button("Break Point");
-        bp.setOnMouseClicked(event -> circuit.toggleBreakPoint());
-
         Button addComponent = new Button("Component +");
         Button removeComponent = new Button("Component -");
         removeComponent.setOnMouseClicked(event -> circuit.removeComponent());
@@ -148,7 +145,7 @@ public class View extends Application {
         });
 
         GridPane.setHgrow(topButtonsRight, Priority.ALWAYS);
-        topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton(), bp);
+        topButtonsLeft.getChildren().addAll(addComponent, removeComponent, circuit.getAddWireButton(), circuit.getRemoveWireButton(), connect, circuit.getControlButton());
         topButtonsRight.getChildren().addAll(circuit.getUndoButton(), circuit.getRedoButton(), save, load, clear, settings);
 
         clear.setOnMouseClicked(event -> circuit.clear());

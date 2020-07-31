@@ -408,11 +408,19 @@ public class Circuit {
 
         hoverDisable = x > hoverCol * (boxWidth + colDist) + boxWidth || y > hoverRow * (boxHeight + colDist) + boxHeight;
 
-        if (components[hoverRow][hoverCol] != null)
+        if (components[hoverRow][hoverCol] != null && x <= hoverCol * (boxWidth + colDist) + boxWidth)
             hoverDisable = false;
 
         expandHover();
+        highlightBreakPosition(x);
+
         draw();
+    }
+
+    double breakHighlight;
+    public void highlightBreakPosition(double x) {
+        if (x > hoverCol * (boxWidth + colDist) + boxWidth)
+            breakHighlight = colDist + hoverCol * (boxWidth + colDist) + boxWidth + colDist / 2.0;
     }
 
     public Button getControlButton() {
@@ -436,10 +444,15 @@ public class Circuit {
         x -= colDist;
         y -= rowDist;
 
-        // DO NOT ALLOW SELECTION OF LAST POSITION (reserved for percentage bar)
-        if ((int) (x / (boxWidth + colDist)) < maxGates - 1) {
-            selectedCol = (int) (x / (boxWidth + colDist));
-            selectedRow = (int) (y / (boxHeight + rowDist));
+        // Toggle breakpoint
+        if (x > hoverCol * (boxWidth + colDist) + boxWidth)
+            toggleBreakPoint((int) (x / (boxWidth + colDist)));
+        else {
+            // DO NOT ALLOW SELECTION OF LAST POSITION (reserved for percentage bar)
+            if ((int) (x / (boxWidth + colDist)) < maxGates - 1) {
+                selectedCol = (int) (x / (boxWidth + colDist));
+                selectedRow = (int) (y / (boxHeight + rowDist));
+            }
         }
 
         expandSelection();
@@ -501,8 +514,14 @@ public class Circuit {
         // Draw hover
         if (!hoverDisable) {
             graphicsContext.setLineWidth(3);
-            graphicsContext.setStroke(Color.DARKGRAY);
+            graphicsContext.setStroke(Color.GRAY);
             graphicsContext.strokeRect(colDist + hoverCol * (boxWidth + colDist), rowDist + hoverRow * (boxWidth + rowDist), boxWidth, hoverHeight);
+            graphicsContext.setLineWidth(1);
+        } else {
+            // Draw breakpoint hover
+            graphicsContext.setLineWidth(3);
+            graphicsContext.setStroke(Color.DARKGRAY);
+            graphicsContext.strokeLine(breakHighlight, 0, breakHighlight, canvas.getHeight());
             graphicsContext.setLineWidth(1);
         }
 
@@ -672,11 +691,11 @@ public class Circuit {
         stepBackward.setDisable(true);
     }
 
-    public void toggleBreakPoint() {
-        if (!breakPoints.contains(selectedCol)) {
-            breakPoints.add(selectedCol);
+    public void toggleBreakPoint(int col) {
+        if (!breakPoints.contains(col)) {
+            breakPoints.add(col);
         } else {
-            breakPoints.remove((Object) selectedCol);
+            breakPoints.remove((Object) col);
         }
         breakPoints.sort(Integer::compareTo);
         resetRun();
