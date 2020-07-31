@@ -1,11 +1,11 @@
-[![qxn](vqxn.png)](https://github.com/armytricks/VisualQXN)
+[![qxn](art/vqxn.png)](https://github.com/armytricks/VisualQXN)
 # VisualQXN
 [![Release](https://img.shields.io/github/v/release/armytricks/VisualQXN)](https://github.com/armytricks/VisualQXN/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 [Releases](https://github.com/armytricks/VisualQXN/releases/latest) | [License](LICENSE)
 
-![Deutsch Josza](deutschjosza.gif)
+![Quantum Teleportation](art/qteleport.gif)
 
 **VisualQXN** is a graphical toolkit for simulating and debugging small quantum algorithms as circuits.
 
