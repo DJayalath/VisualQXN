@@ -107,23 +107,30 @@ public class View extends Application {
         Button addComponent = new Button("Component +");
         Button removeComponent = new Button("Component -");
         removeComponent.setOnMouseClicked(event -> circuit.removeComponent());
-        Button connect = new Button("Connect");
+        Button connect = new Button("Classical Control");
         connect.setOnMouseClicked(event -> circuit.connect());
 
         Button settings = new Button("Settings");
         Button clear = new Button("Clear");
-
         Button save = new Button("Save");
+
         save.setOnMouseClicked(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Circuit");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("VisualQXN Files", "*.vqxn"));
+            fileChooser.setInitialFileName("*.vqxn");
             File file = fileChooser.showSaveDialog(stage);
             if (file != null) {
                 try {
                     circuit.save(file.getAbsolutePath());
                 } catch (IOException ioException) {
                     // Alert error
-                    ioException.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Circuit File System Error");
+                    alert.setHeaderText("Error saving circuit to file");
+                    alert.setContentText("Failed to save circuit");
+
+                    alert.showAndWait();
                 }
             }
         });
@@ -132,13 +139,20 @@ public class View extends Application {
         load.setOnMouseClicked(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Load Circuit");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("VisualQXN Files", "*.vqxn"));
             File file = fileChooser.showOpenDialog(stage);
             if (file != null) {
                 try {
                     circuit.load(file.getAbsolutePath());
                     scene.getWindow().setWidth(circuit.getCanvas().getWidth());
                 } catch (IOException | ClassNotFoundException ioException) {
-                    ioException.printStackTrace();
+                    // Alert error
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Circuit File System Error");
+                    alert.setHeaderText("Error loading circuit from file");
+                    alert.setContentText("Failed to load circuit");
+
+                    alert.showAndWait();
                 }
             }
 
@@ -219,7 +233,6 @@ public class View extends Application {
         statusPane.setAlignment(Pos.CENTER);
         GridPane.setHalignment(circuit.getBarChart(), HPos.CENTER);
         GridPane.setValignment(circuit.getBarChart(), VPos.CENTER);
-        System.out.println(circuit.getBarChart().getHeight());
 
         addComponent.setOnMouseClicked(event -> {
             Dialog<Component> dialog = new Dialog<>();
