@@ -386,6 +386,8 @@ public class Circuit {
 
     public void control() {
 
+        addUndoState();
+
         components[selectedRow - 1][selectedCol] = new ControlledGate((StandardGate) components[selectedRow][selectedCol]);
         components[selectedRow][selectedCol] = null;
 
