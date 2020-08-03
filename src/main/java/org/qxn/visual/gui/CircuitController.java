@@ -53,7 +53,7 @@ public class CircuitController {
         circuitState = new CircuitState(2, 15, canvas, this);
 
         HBox stepButtonBox = new HBox(5, executor.getStepForwardButton(), executor.getStepBackwardButton(),
-                circuitState.getAddWireButton(), circuitState.getRemoveWireButton());
+                circuitState.getAddWireButton(), circuitState.getRemoveWireButton(), new Label("Gate"), circuitState.getGateSelect());
         stepButtonBox.setPadding(new Insets(10));
         GridPane.setVgrow(stepButtonBox, Priority.ALWAYS);
         stepButtonBox.setAlignment(Pos.CENTER_LEFT);

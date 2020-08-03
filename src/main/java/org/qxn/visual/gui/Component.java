@@ -7,6 +7,11 @@ import java.io.Serializable;
 public abstract class Component implements Serializable {
 
     protected boolean isGate = false;
+
+    public int getSpan() {
+        return span;
+    }
+
     protected int span;
 
     public Component(int span) {

@@ -1,6 +1,9 @@
 package org.qxn.visual.gui;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import org.qxn.gates.Gate;
 
 public class StandardGate extends Component {
@@ -46,6 +49,17 @@ public class StandardGate extends Component {
 
     @Override
     public void draw(double x, double y, GraphicsContext graphicsContext) {
+
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.setStroke(Color.BLACK);
+
+        graphicsContext.fillRect(x, y, CircuitState.gateWidth, CircuitState.gateHeight);
+        graphicsContext.strokeRect(x, y, CircuitState.gateWidth, CircuitState.gateHeight);
+
+        graphicsContext.setTextAlign(TextAlignment.CENTER);
+        graphicsContext.setTextBaseline(VPos.CENTER);
+        graphicsContext.setFill(Color.BLACK);
+        graphicsContext.fillText(label, x + CircuitState.gateWidth / 2.0, y + CircuitState.gateHeight / 2.0);
 
     }
 }

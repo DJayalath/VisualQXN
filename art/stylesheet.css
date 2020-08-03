@@ -9,3 +9,18 @@
 .button:pressed {
     -fx-background-color: rgba(0, 200, 0, 0.3);
 }
+
+// Background color of the control itself
+.choice-box {
+  -fx-background-color: rgba(0, 200, 0, 0.5);
+  -fx-mark-color: black; // arrow color
+}
+
+// Background color of the whole context menu
+.choice-box .context-menu { -fx-background-color: rgba(0, 200, 0, 0.3); }
+// Focused item background color in the list
+.choice-box .menu-item:focused { -fx-background-color: rgba(0, 200, 0, 0.4); }
+// Text color of non-focused items in the list
+.choice-box .menu-item > .label { -fx-text-fill: black; }
+// Text color of focused item in the list
+.choice-box .menu-item:focused > .label { -fx-text-fill: black; }

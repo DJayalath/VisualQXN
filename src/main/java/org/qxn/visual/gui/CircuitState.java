@@ -1,9 +1,16 @@
 package org.qxn.visual.gui;
 
+import javafx.collections.FXCollections;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.paint.Color;;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.paint.Color;
+import org.qxn.gates.H;
+import org.qxn.gates.X;
+import org.qxn.gates.Y;
+import org.qxn.gates.Z;;import java.util.ArrayList;
+import java.util.List;
 
 public class CircuitState {
 
@@ -31,6 +38,7 @@ public class CircuitState {
 
     private final Button addWireButton;
     private final Button removeWireButton;
+    private final ChoiceBox<String> gateSelect;
 
     public Canvas getCanvas() {
         return canvas;
@@ -40,6 +48,10 @@ public class CircuitState {
 
     private final CircuitController circuitController;
 
+    public ChoiceBox<String> getGateSelect() {
+        return gateSelect;
+    }
+
     public CircuitState(int numWires, int numGates, Canvas canvas, CircuitController circuitController) {
 
         this.circuitController = circuitController;
@@ -48,6 +60,10 @@ public class CircuitState {
         this.numGates = numGates;
 
         this.canvas = canvas;
+        canvas.setOnMouseEntered(e -> hoverEnabled = true);
+        canvas.setOnMouseExited(e -> hoverEnabled = false);
+        canvas.setOnMouseMoved(e -> hover(e.getX(), e.getY()));
+        canvas.setOnMouseClicked(e -> select(e.getX(), e.getY()));
         resizeCanvas();
 
         components = new Component[numWires][numGates];
@@ -57,6 +73,15 @@ public class CircuitState {
 
         addWireButton.setOnMouseClicked(e -> addWire());
         removeWireButton.setOnMouseClicked(e -> removeWire());
+
+        List<String> gates = new ArrayList<>();
+        gates.add("H");
+        gates.add("CNOT");
+        gates.add("X");
+        gates.add("Y");
+        gates.add("Z");
+        gateSelect = new ChoiceBox<>(FXCollections.observableArrayList(gates));
+        gateSelect.setValue(gates.get(0));
 
         updateButtons();
     }
@@ -114,17 +139,95 @@ public class CircuitState {
         canvas.setHeight( (wireGap + gateHeight) * numWires + wireGap );
     }
 
-    private double getYFromRow(double row) {
-        return (wireGap + gateHeight) * row + wireGap;
+    private int hoverRow, hoverCol;
+    private boolean hoverEnabled = false;
+
+    private void hover(double x, double y) {
+        hoverRow = getRowFromY(y);
+        hoverCol = getColFromX(x);
+
+        hoverEnabled = isValidPosition(x, y, hoverRow, hoverCol);
+
+        circuitController.notifyCanvasChange();
     }
 
-    private double getXFromCol(double col) {
+    private int selectedRow, selectedCol;
+
+    private void select(double x, double y) {
+
+        selectedRow = getRowFromY(y);
+        selectedCol = getColFromX(x);
+
+        if (isValidPosition(x, y, selectedRow, selectedCol)) {
+            addGate(selectedRow, selectedCol);
+            circuitController.notifyCanvasChange();
+            hover(x, y);
+        } else {
+
+        }
+    }
+
+    private void addGate(int row, int col) {
+
+        Component component = null;
+        switch (gateSelect.getValue()) {
+            case "H":
+                component = new StandardGate("H", new H(row));
+                break;
+            case "X":
+                component = new StandardGate("X", new X(row));
+                break;
+            case "Y":
+                component = new StandardGate("Y", new Y(row));
+                break;
+            case "Z":
+                component = new StandardGate("Z", new Z(row));
+                break;
+            default: break;
+        }
+
+        if (component != null)
+            components[row][col] = component;
+
+    }
+
+    private boolean isValidPosition(double x, double y, int row, int col) {
+        boolean valid = !(x > getXFromCol(col) + gateWidth);
+        if (valid)
+            valid = !(x < getXFromCol(col));
+        if (valid)
+            valid = !(y > getYFromRow(row) + gateHeight);
+        if (valid)
+            valid = !(y < getYFromRow(row));
+        if (valid) {
+            // Check if any components overlap this position
+            for (int i = 0; i < numWires; i++) {
+                if (components[i][col] != null) {
+                    if (row >= i && row <= i + components[i][col].getSpan() - 1) {
+                        valid = false;
+                    }
+                }
+            }
+        }
+        return valid;
+    }
+
+    private double getYFromRow(int row) {
+        return (wireGap + gateHeight) * row + wireGap;
+    }
+    private double getXFromCol(int col) {
         return (gateGap + gateWidth) * col + gateGap;
+    }
+    private int getRowFromY(double y) {
+        return (int) ((y - wireGap) / (wireGap + gateHeight));
+    }
+    private int getColFromX(double x) {
+        return (int) ((x - gateGap) / (gateGap + gateWidth));
     }
 
     public void draw(GraphicsContext graphicsContext) {
         // Clear circuit
-        graphicsContext.setFill(Color.LIGHTGRAY);
+        graphicsContext.setFill(Color.WHITE);
         graphicsContext.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Draw wires
@@ -141,9 +244,35 @@ public class CircuitState {
                     double x = getXFromCol(j);
                     double y = getYFromRow(i);
                     components[i][j].draw(x, y, graphicsContext);
+                } else {
+                    graphicsContext.setStroke(Color.rgb(0, 0, 0, 0.1));
+                    graphicsContext.strokeRect(getXFromCol(j), getYFromRow(i), gateWidth, gateHeight);
                 }
             }
         }
+
+        // Draw hover
+        if (hoverEnabled) {
+            graphicsContext.setFill(Color.rgb(230, 230, 230, 0.8));
+            graphicsContext.fillRect(getXFromCol(hoverCol), getYFromRow(hoverRow), gateWidth, gateHeight);
+            graphicsContext.setStroke(Color.rgb(165, 137, 193, 1.0));
+            graphicsContext.setLineWidth(2.5);
+            graphicsContext.strokeLine(
+                    getXFromCol(hoverCol) + gateWidth / 2.0 - 10, getYFromRow(hoverRow) + gateHeight / 2.0,
+                    getXFromCol(hoverCol) + gateWidth / 2.0 + 10, getYFromRow(hoverRow) + gateHeight / 2.0
+            );
+            graphicsContext.strokeLine(
+                    getXFromCol(hoverCol) + gateWidth / 2.0, getYFromRow(hoverRow) + gateHeight / 2.0 - 10,
+                    getXFromCol(hoverCol) + gateWidth / 2.0, getYFromRow(hoverRow) + gateHeight / 2.0 + 10
+            );
+            graphicsContext.setLineWidth(1);
+        }
+
+//        // Draw select
+//        if (selectedEnabled) {
+//            graphicsContext.setFill(Color.rgb(200, 200, 200, 1.0));
+//            graphicsContext.fillRect(getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth, gateHeight);
+//        }
     }
 
 }
