@@ -6,29 +6,18 @@ import java.io.Serializable;
 
 public abstract class Component implements Serializable {
 
-    protected int row;
-    protected int col;
-
-    public int getRow() {
-        return row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public int getSpan() {
-        return span;
-    }
-
+    protected boolean isGate = false;
     protected int span;
 
-    public Component(int row, int col, int span) {
-        this.row = row;
-        this.col = col;
+    public Component(int span) {
         this.span = span;
     }
 
-    public abstract void draw(GraphicsContext graphicsContext);
+    public boolean isGate() {
+        return isGate;
+    }
+
+    public abstract void draw(double x, double y, GraphicsContext graphicsContext);
+    public abstract void cleanUp();
 
 }
