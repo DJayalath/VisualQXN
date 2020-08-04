@@ -264,6 +264,10 @@ public class CircuitState {
     }
 
     private boolean isValidPosition(double x, double y, int row, int col) {
+
+        if (col == numGates - 1)
+            return false;
+
         boolean valid = !(x > getXFromCol(col) + gateWidth);
         if (valid)
             valid = !(x < getXFromCol(col));
