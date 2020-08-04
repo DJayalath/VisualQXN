@@ -10,8 +10,20 @@ public class QuantumMeter extends Component {
 
     private int classicalBit = 0;
 
-    public QuantumMeter() {
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    private int row, col;
+
+    public QuantumMeter(int row, int col) {
         super(1);
+        this.row = row;
+        this.col = col;
     }
 
     public int getClassicalBit() {

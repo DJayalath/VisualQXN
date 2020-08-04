@@ -12,6 +12,9 @@ public class CNOTGate extends StandardGate {
     @Override
     public void draw(double x, double y, GraphicsContext graphicsContext) {
 
+        if (isClassicallyControlled())
+            drawClassicalConnection(x, y, graphicsContext);
+
         x += CircuitState.gateWidth / 2.0;
         y += CircuitState.gateHeight / 2.0;
 

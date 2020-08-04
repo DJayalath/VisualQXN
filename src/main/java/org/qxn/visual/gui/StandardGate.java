@@ -47,8 +47,21 @@ public class StandardGate extends Component {
         isGate = true;
     }
 
+    protected void drawClassicalConnection(double x, double y, GraphicsContext graphicsContext) {
+
+        graphicsContext.setStroke(Color.BLACK);
+        double targetY = CircuitState.getYFromRow(quantumMeter.getRow()) + CircuitState.gateHeight / 2.0;
+        x += CircuitState.gateWidth / 2.0;
+        graphicsContext.strokeLine(x - 2.5, y, x - 2.5, targetY);
+        graphicsContext.strokeLine(x + 2.5, y, x + 2.5, targetY);
+
+    }
+
     @Override
     public void draw(double x, double y, GraphicsContext graphicsContext) {
+
+        if (isClassicallyControlled())
+            drawClassicalConnection(x, y, graphicsContext);
 
         graphicsContext.setFill(Color.WHITE);
         graphicsContext.setStroke(Color.BLACK);

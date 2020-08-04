@@ -27,6 +27,7 @@ public class CircuitState {
     private final Button addWireButton;
     private final Button removeWireButton;
     private final Button removeComponentButton;
+
     private final ChoiceBox<String> gateSelect;
     private final Canvas canvas;
     private final CircuitController circuitController;
@@ -79,10 +80,11 @@ public class CircuitState {
 
         List<String> gates = new ArrayList<>();
         gates.add("H");
-        gates.add("CNOT");
         gates.add("X");
         gates.add("Y");
         gates.add("Z");
+        gates.add("CNOT");
+        gates.add("Measure");
         gateSelect = new ChoiceBox<>(FXCollections.observableArrayList(gates));
         gateSelect.setValue(gates.get(0));
 
@@ -190,7 +192,7 @@ public class CircuitState {
         selectedCol = getColFromX(x);
 
         if (isValidPosition(x, y, selectedRow, selectedCol)) {
-            addGate(selectedRow, selectedCol);
+            addComponent(selectedRow, selectedCol);
             hover(x, y);
         } else {
             Integer r = getComponentRow(selectedRow, selectedCol);
@@ -206,7 +208,7 @@ public class CircuitState {
         circuitController.notifyCircuitChange();
     }
 
-    private void addGate(int row, int col) {
+    private void addComponent(int row, int col) {
 
         Component component = null;
         switch (gateSelect.getValue()) {
@@ -224,6 +226,9 @@ public class CircuitState {
                 break;
             case "CNOT":
                 component = new CNOTGate(row);
+                break;
+            case "Measure":
+                component = new QuantumMeter(row, col);
                 break;
             default: break;
         }
@@ -316,7 +321,7 @@ public class CircuitState {
         return null;
     }
 
-    private double getYFromRow(int row) {
+    public static double getYFromRow(int row) {
         return (wireGap + gateHeight) * row + wireGap;
     }
     private double getXFromCol(int col) {
