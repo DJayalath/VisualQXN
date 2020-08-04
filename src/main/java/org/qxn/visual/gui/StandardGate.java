@@ -54,7 +54,8 @@ public class StandardGate extends Component {
         x += CircuitState.gateWidth / 2.0;
         graphicsContext.strokeLine(x - 2.5, y, x - 2.5, targetY);
         graphicsContext.strokeLine(x + 2.5, y, x + 2.5, targetY);
-
+        graphicsContext.setFill(Color.BLACK);
+        graphicsContext.fillOval(x - 3, targetY + 2.5 - 3, 6, 6);
     }
 
     @Override

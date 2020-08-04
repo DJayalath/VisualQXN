@@ -32,9 +32,8 @@ public class ProbabilityChart {
 
     }
 
-    public void updateBarChart(double[] p) {
+    public void updateBarChart(int numWires, double[] p) {
 
-        int numWires = p.length >> 1;
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
         for (int i = 0; i < p.length; i++) {

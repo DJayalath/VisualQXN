@@ -2,6 +2,7 @@ package org.qxn.visual.gui;
 
 import javafx.collections.FXCollections;
 import javafx.geometry.VPos;
+import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
@@ -76,7 +77,7 @@ public class CircuitState {
 
         addWireButton.setOnMouseClicked(e -> addWire());
         removeWireButton.setOnMouseClicked(e -> removeWire());
-        removeComponentButton.setOnMouseClicked(e -> removeGate(selectedRow, selectedCol));
+        removeComponentButton.setOnMouseClicked(e -> removeComponent(selectedRow, selectedCol));
 
         List<String> gates = new ArrayList<>();
         gates.add("H");
@@ -182,9 +183,14 @@ public class CircuitState {
 
         if (last != hoverEnabled)
             circuitController.notifyCircuitChange();
+
     }
 
     private void select(double x, double y) {
+
+        int lastRow = selectedRow;
+        int lastCol = selectedCol;
+        boolean lastEnabled = selectedEnabled;
 
         selectedEnabled = false;
 
@@ -204,6 +210,24 @@ public class CircuitState {
         }
 
         removeComponentButton.setDisable(!selectedEnabled);
+
+        if (selectedEnabled && lastEnabled && lastRow == selectedRow && lastCol == selectedCol &&
+                !components[selectedRow][selectedCol].isGate()) {
+            circuitController.notifyIndicatorLabelChange("Select component to connect to measurement device");
+            circuitController.notifyIndicatorBarChange(Color.ORANGE);
+        } else if (selectedEnabled && components[selectedRow][selectedCol].isGate()) {
+            if (components[lastRow][lastCol] != null && !components[lastRow][lastCol].isGate()) {
+                StandardGate gate = (StandardGate) components[selectedRow][selectedCol];
+                QuantumMeter meter = (QuantumMeter) components[lastRow][lastCol];
+                gate.setQuantumMeter(meter);
+                circuitController.notifyCircuitStateChange();
+                circuitController.notifyIndicatorLabelChange("We good lads");
+                circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
+            }
+        } else {
+            circuitController.notifyIndicatorLabelChange("We good lads");
+            circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
+        }
 
         circuitController.notifyCircuitChange();
     }
@@ -250,13 +274,14 @@ public class CircuitState {
 
     }
 
-    private void removeGate(int row, int col) {
+    private void removeComponent(int row, int col) {
         if (components[row][col] != null && selectedEnabled) {
             components[row][col].cleanUp();
             components[row][col] = null;
             selectedEnabled = false;
+            removeComponentButton.setDisable(true);
+            circuitController.notifyCircuitStateChange();
         }
-        circuitController.notifyCircuitStateChange();
     }
 
     private void showErrorDialog(String message) {
@@ -379,11 +404,32 @@ public class CircuitState {
 
         // Draw selected overlay on component
         if (selectedEnabled) {
-            graphicsContext.setFill(Color.rgb(165, 137, 193, 0.4));
-            graphicsContext.fillRect(
-                    getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
-                    gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
-            );
+            if (!components[selectedRow][selectedCol].isGate()) {
+
+                graphicsContext.setFill(Color.rgb(230, 230, 230, 0.95));
+                graphicsContext.fillRect(
+                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
+                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
+                );
+
+                graphicsContext.setStroke(Color.rgb(0, 200, 0, 0.5));
+                graphicsContext.setLineWidth(3);
+                graphicsContext.strokeLine(
+                        getXFromCol(selectedCol) + gateWidth / 2.0 - 10, getYFromRow(selectedRow) + gateHeight / 2.0,
+                        getXFromCol(selectedCol) + gateWidth / 2.0 + 10, getYFromRow(selectedRow) + gateHeight / 2.0
+                );
+                graphicsContext.strokeLine(
+                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 - 10,
+                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 + 10
+                );
+                graphicsContext.setLineWidth(1);
+            } else {
+                graphicsContext.setFill(Color.rgb(165, 137, 193, 0.4));
+                graphicsContext.fillRect(
+                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
+                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
+                );
+            }
         }
 
         drawMeasurements(graphicsContext);
@@ -400,6 +446,11 @@ public class CircuitState {
         if (measurements == null) {
             measurements = new double[numWires];
             Arrays.fill(measurements, 0);
+        } else if (measurements.length != numWires) {
+            double[] newMeasurements = new double[numWires];
+            for (int i = 0; i < Math.min(measurements.length, numWires); i++)
+                newMeasurements[i] = measurements[i];
+            measurements = newMeasurements;
         }
 
         for (int i = 0; i < numWires; i++) {

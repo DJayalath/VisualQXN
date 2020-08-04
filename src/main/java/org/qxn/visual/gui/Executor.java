@@ -58,14 +58,14 @@ public class Executor {
 
     public void stepForward() {
         breakpointIndex++;
-        probabilityChart.updateBarChart(probabilities.get(breakpoints.get(breakpointIndex)));
+        probabilityChart.updateBarChart(measurements.get(0).length, probabilities.get(breakpoints.get(breakpointIndex)));
         updateButtons();
         circuitController.notifyMeasurementsChange();
     }
 
     public void stepBackward() {
         breakpointIndex--;
-        probabilityChart.updateBarChart(probabilities.get(breakpoints.get(breakpointIndex)));
+        probabilityChart.updateBarChart(measurements.get(0).length , probabilities.get(breakpoints.get(breakpointIndex)));
         updateButtons();
         circuitController.notifyMeasurementsChange();
     }
@@ -110,7 +110,7 @@ public class Executor {
         }
 
         updateBreakpoints(numGates);
-        probabilityChart.updateBarChart(probabilities.get(breakpoints.get(breakpointIndex)));
+        probabilityChart.updateBarChart(numWires, probabilities.get(breakpoints.get(breakpointIndex)));
         circuitController.notifyMeasurementsChange();
 
         circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
