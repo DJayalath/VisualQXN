@@ -211,6 +211,7 @@ public class CircuitState {
 
         removeComponentButton.setDisable(!selectedEnabled);
 
+        // Classical control
         if (selectedEnabled && lastEnabled && lastRow == selectedRow && lastCol == selectedCol &&
                 !components[selectedRow][selectedCol].isGate()) {
             circuitController.notifyIndicatorLabelChange("Select component to connect to measurement device");
