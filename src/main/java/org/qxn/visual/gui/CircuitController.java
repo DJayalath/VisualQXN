@@ -53,7 +53,8 @@ public class CircuitController {
         circuitState = new CircuitState(2, 15, canvas, this);
 
         HBox stepButtonBox = new HBox(5, executor.getStepForwardButton(), executor.getStepBackwardButton(),
-                circuitState.getAddWireButton(), circuitState.getRemoveWireButton(), new Label("Gate"), circuitState.getGateSelect());
+                circuitState.getAddWireButton(), circuitState.getRemoveWireButton(),
+                new Label("Gate"), circuitState.getGateSelect(), circuitState.getRemoveComponentButton());
         stepButtonBox.setPadding(new Insets(10));
         GridPane.setVgrow(stepButtonBox, Priority.ALWAYS);
         stepButtonBox.setAlignment(Pos.CENTER_LEFT);
@@ -65,16 +66,23 @@ public class CircuitController {
         circuitPane.add(stepButtonBox, 0, 2);
         circuitPane.add(executor.getProbabilityChart().getBarChart(), 0, 3);
 
-        notifyCanvasChange();
+        notifyCircuitChange();
     }
 
-    public void notifyCanvasChange() {
+    public void notifyCircuitChange() {
         circuitState.draw(graphicsContext);
+    }
+
+    public void notifyCircuitStateChange() {
+        notifyCircuitChange();
+        executor.update(circuitState.getComponents(), circuitState.getNumWires(), circuitState.getNumGates());
     }
 
     // Draw measurements
     public void notifyMeasurementsChange() {
         double[] percentages = executor.getMeasurements();
+        circuitState.setMeasurements(percentages);
+        notifyCircuitChange();
     }
 
     // Draw indicator bar

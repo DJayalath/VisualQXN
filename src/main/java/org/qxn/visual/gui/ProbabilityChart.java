@@ -40,10 +40,21 @@ public class ProbabilityChart {
         for (int i = 0; i < p.length; i++) {
             String binary = String.format("%" + numWires + "s",
                     Integer.toBinaryString(i)).replace(' ', '0');
-            series.getData().add(new XYChart.Data<>(binary, p[i]));
+            final XYChart.Data<String, Number> data = new XYChart.Data<>(binary, p[i]);
+
+            data.nodeProperty().addListener(((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    newValue.setStyle("-fx-bar-fill: rgba(165, 137, 193, 1.0)");
+                }
+            }));
+
+            series.getData().add(data);
         }
 
-        barChart.getData().add(series);
+        if (barChart.getData().isEmpty())
+            barChart.getData().add(series);
+        else
+            barChart.getData().set(0, series);
 
     }
 

@@ -113,7 +113,7 @@ public class Executor {
         probabilityChart.updateBarChart(probabilities.get(breakpoints.get(breakpointIndex)));
         circuitController.notifyMeasurementsChange();
 
-        circuitController.notifyIndicatorBarChange(Color.GREEN);
+        circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
     }
 
     private void calculateProbabilitiesAndMeasurements(ComplexMatrix quantumState) {
@@ -122,8 +122,8 @@ public class Executor {
         int numWires = quantumState.rows >> 1;
 
         // Calculate probabilities and measurements after this 'step'
-        double[] p = new double[numWires];
-        double[] m = new double[numResults];
+        double[] p = new double[numResults];
+        double[] m = new double[numWires];
 
         for (int i = 0; i < numResults; i++) {
             p[i] = quantumState.data[i][0].getMagnitude2();
@@ -148,6 +148,13 @@ public class Executor {
             breakpointIndex = breakpoints.size() - 1;
             stepForwardButton.setDisable(true);
         }
+
+        // Check if no break points (add one at the end)
+        if (!breakpoints.contains((Object) Integer.valueOf(numGates - 1)))
+            breakpoints.add(numGates - 1);
+
+        if (breakpointIndex < 0)
+            breakpointIndex = 0;
 
         // Check buttons
         updateButtons();

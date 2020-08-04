@@ -1,14 +1,17 @@
 package org.qxn.visual.gui;
 
 import javafx.collections.FXCollections;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import org.qxn.gates.*;
 ;import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CircuitState {
@@ -21,35 +24,33 @@ public class CircuitState {
 
     public static final double gateWidth = 50;
     public static final double gateHeight = 50;
+    private final Button addWireButton;
+    private final Button removeWireButton;
+    private final Button removeComponentButton;
+    private final ChoiceBox<String> gateSelect;
+    private final Canvas canvas;
+    private final CircuitController circuitController;
+
+    public Component[][] getComponents() {
+        return components;
+    }
 
     private Component[][] components;
 
+    public int getNumWires() {
+        return numWires;
+    }
+
+    public int getNumGates() {
+        return numGates;
+    }
+
     private int numWires;
     private int numGates;
-
-    public Button getAddWireButton() {
-        return addWireButton;
-    }
-
-    public Button getRemoveWireButton() {
-        return removeWireButton;
-    }
-
-    private final Button addWireButton;
-    private final Button removeWireButton;
-    private final ChoiceBox<String> gateSelect;
-
-    public Canvas getCanvas() {
-        return canvas;
-    }
-
-    private final Canvas canvas;
-
-    private final CircuitController circuitController;
-
-    public ChoiceBox<String> getGateSelect() {
-        return gateSelect;
-    }
+    private int hoverRow, hoverCol;
+    private boolean hoverEnabled = false;
+    private int selectedRow, selectedCol, selectedSpan;
+    private boolean selectedEnabled = false;
 
     public CircuitState(int numWires, int numGates, Canvas canvas, CircuitController circuitController) {
 
@@ -69,9 +70,12 @@ public class CircuitState {
 
         addWireButton = new Button("Wire +");
         removeWireButton = new Button("Wire -");
+        removeComponentButton = new Button("DELETE");
+        removeComponentButton.setDisable(true);
 
         addWireButton.setOnMouseClicked(e -> addWire());
         removeWireButton.setOnMouseClicked(e -> removeWire());
+        removeComponentButton.setOnMouseClicked(e -> removeGate(selectedRow, selectedCol));
 
         List<String> gates = new ArrayList<>();
         gates.add("H");
@@ -83,6 +87,26 @@ public class CircuitState {
         gateSelect.setValue(gates.get(0));
 
         updateButtons();
+    }
+
+    public Button getAddWireButton() {
+        return addWireButton;
+    }
+
+    public Button getRemoveWireButton() {
+        return removeWireButton;
+    }
+
+    public Button getRemoveComponentButton() {
+        return removeComponentButton;
+    }
+
+    public Canvas getCanvas() {
+        return canvas;
+    }
+
+    public ChoiceBox<String> getGateSelect() {
+        return gateSelect;
     }
 
     private void updateButtons() {
@@ -104,7 +128,7 @@ public class CircuitState {
 
         this.numGates = numGates;
         resizeCanvas();
-        circuitController.notifyCanvasChange();
+        circuitController.notifyCircuitStateChange();
     }
 
     private void addWire() {
@@ -138,7 +162,7 @@ public class CircuitState {
 
         this.numWires = numWires;
         resizeCanvas();
-        circuitController.notifyCanvasChange();
+        circuitController.notifyCircuitStateChange();
         updateButtons();
     }
 
@@ -146,9 +170,6 @@ public class CircuitState {
         canvas.setWidth( (gateGap + gateWidth) * numGates + gateGap );
         canvas.setHeight( (wireGap + gateHeight) * numWires + wireGap );
     }
-
-    private int hoverRow, hoverCol;
-    private boolean hoverEnabled = false;
 
     private void hover(double x, double y) {
         hoverRow = getRowFromY(y);
@@ -158,11 +179,8 @@ public class CircuitState {
         hoverEnabled = isValidPosition(x, y, hoverRow, hoverCol);
 
         if (last != hoverEnabled)
-            circuitController.notifyCanvasChange();
+            circuitController.notifyCircuitChange();
     }
-
-    private int selectedRow, selectedCol, selectedSpan;
-    private boolean selectedEnabled = false;
 
     private void select(double x, double y) {
 
@@ -183,7 +201,9 @@ public class CircuitState {
             }
         }
 
-        circuitController.notifyCanvasChange();
+        removeComponentButton.setDisable(!selectedEnabled);
+
+        circuitController.notifyCircuitChange();
     }
 
     private void addGate(int row, int col) {
@@ -220,8 +240,18 @@ public class CircuitState {
             }
 
             components[row][col] = component;
+            circuitController.notifyCircuitStateChange();
         }
 
+    }
+
+    private void removeGate(int row, int col) {
+        if (components[row][col] != null && selectedEnabled) {
+            components[row][col].cleanUp();
+            components[row][col] = null;
+            selectedEnabled = false;
+        }
+        circuitController.notifyCircuitStateChange();
     }
 
     private void showErrorDialog(String message) {
@@ -346,6 +376,39 @@ public class CircuitState {
                     gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
             );
         }
+
+        drawMeasurements(graphicsContext);
+    }
+
+    private double[] measurements;
+
+    public void setMeasurements(double[] measurements) {
+        this.measurements = measurements;
+    }
+
+    private void drawMeasurements(GraphicsContext graphicsContext) {
+
+        if (measurements == null) {
+            measurements = new double[numWires];
+            Arrays.fill(measurements, 0);
+        }
+
+        for (int i = 0; i < numWires; i++) {
+
+            graphicsContext.setFill(Color.WHITESMOKE);
+            graphicsContext.fillRect(getXFromCol(numGates - 1), getYFromRow(i), gateWidth, gateHeight);
+
+            graphicsContext.setFill(Color.rgb(0, 200, 0, 0.5));
+            graphicsContext.fillRect(getXFromCol(numGates  - 1), getYFromRow(i) + gateHeight - gateHeight * measurements[i], gateWidth, gateHeight * measurements[i]);
+
+            String percentage = String.format("%.1f", measurements[i] * 100.0);
+            graphicsContext.setTextAlign(TextAlignment.CENTER);
+            graphicsContext.setTextBaseline(VPos.CENTER);
+            graphicsContext.setFill(Color.BLACK);
+            graphicsContext.fillText(percentage + "%", getXFromCol(numGates - 1) + gateWidth / 2.0, getYFromRow(i) + gateHeight / 2.0, gateWidth - 10);
+
+        }
+
     }
 
 }
