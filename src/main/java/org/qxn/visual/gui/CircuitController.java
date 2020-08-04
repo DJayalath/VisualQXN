@@ -53,17 +53,24 @@ public class CircuitController {
         circuitState = new CircuitState(2, 15, canvas, this);
 
         HBox stepButtonBox = new HBox(5, executor.getStepForwardButton(), executor.getStepBackwardButton(),
-                circuitState.getAddWireButton(), circuitState.getRemoveWireButton(),
-                new Label("Gate"), circuitState.getGateSelect(), circuitState.getRemoveComponentButton());
-        stepButtonBox.setPadding(new Insets(10));
-        GridPane.setVgrow(stepButtonBox, Priority.ALWAYS);
+                circuitState.getAddWireButton(), circuitState.getRemoveWireButton());
         stepButtonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(stepButtonBox, Priority.ALWAYS);
+
+        HBox gateButtonBox = new HBox(5, new Label("Gate"), circuitState.getGateSelect(),
+                circuitState.getRemoveComponentButton());
+        HBox.setHgrow(gateButtonBox, Priority.ALWAYS);
+        gateButtonBox.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox buttonBox = new HBox(stepButtonBox, gateButtonBox);
+        buttonBox.setPadding(new Insets(10));
+        GridPane.setVgrow(buttonBox, Priority.ALWAYS);
 
         GridPane.setVgrow(executor.getProbabilityChart().getBarChart(), Priority.ALWAYS);
 
         circuitPane.add(indicatorStack, 0, 0);
         circuitPane.add(canvas, 0, 1);
-        circuitPane.add(stepButtonBox, 0, 2);
+        circuitPane.add(buttonBox, 0, 2);
         circuitPane.add(executor.getProbabilityChart().getBarChart(), 0, 3);
 
         notifyCircuitChange();
