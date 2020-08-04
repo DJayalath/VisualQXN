@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class QuantumMeter extends Component {
@@ -48,7 +49,7 @@ public class QuantumMeter extends Component {
         }
     }
 
-    private List<StandardGate> classicallyControlledGates;
+    private List<StandardGate> classicallyControlledGates = new ArrayList<>();
 
     @Override
     public void draw(double x, double y, GraphicsContext graphicsContext) {
