@@ -161,7 +161,7 @@ public class Executor {
     }
 
     private void updateButtons() {
-        stepForwardButton.setDisable(breakpointIndex >= breakpoints.size());
+        stepForwardButton.setDisable(breakpointIndex >= breakpoints.size() || breakpoints.size() == 1);
         stepBackwardButton.setDisable(breakpointIndex == 0);
     }
 

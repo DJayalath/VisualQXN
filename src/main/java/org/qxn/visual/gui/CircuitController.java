@@ -58,7 +58,7 @@ public class CircuitController {
         HBox.setHgrow(stepButtonBox, Priority.ALWAYS);
 
         HBox gateButtonBox = new HBox(5, new Label("Component"), circuitState.getGateSelect(),
-                circuitState.getRemoveComponentButton());
+                circuitState.getControlButton(), circuitState.getRemoveComponentButton());
         HBox.setHgrow(gateButtonBox, Priority.ALWAYS);
         gateButtonBox.setAlignment(Pos.CENTER_RIGHT);
 

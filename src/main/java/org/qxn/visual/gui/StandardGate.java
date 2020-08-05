@@ -64,6 +64,11 @@ public class StandardGate extends Component {
         if (isClassicallyControlled())
             drawClassicalConnection(x, y, graphicsContext);
 
+        drawGate(x, y, graphicsContext);
+
+    }
+
+    protected void drawGate(double x, double y, GraphicsContext graphicsContext) {
         graphicsContext.setFill(Color.WHITE);
         graphicsContext.setStroke(Color.BLACK);
 
@@ -74,6 +79,5 @@ public class StandardGate extends Component {
         graphicsContext.setTextBaseline(VPos.CENTER);
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillText(label, x + CircuitState.gateWidth / 2.0, y + CircuitState.gateHeight / 2.0);
-
     }
 }

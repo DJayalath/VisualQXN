@@ -2,7 +2,6 @@ package org.qxn.visual.gui;
 
 import javafx.collections.FXCollections;
 import javafx.geometry.VPos;
-import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
@@ -28,6 +27,12 @@ public class CircuitState {
     private final Button addWireButton;
     private final Button removeWireButton;
     private final Button removeComponentButton;
+
+    public Button getControlButton() {
+        return controlButton;
+    }
+
+    private final Button controlButton;
 
     private final ChoiceBox<String> gateSelect;
     private final Canvas canvas;
@@ -74,10 +79,13 @@ public class CircuitState {
         removeWireButton = new Button("Wire -");
         removeComponentButton = new Button("DELETE");
         removeComponentButton.setDisable(true);
+        controlButton = new Button("Control");
+        controlButton.setDisable(true);
 
         addWireButton.setOnMouseClicked(e -> addWire());
         removeWireButton.setOnMouseClicked(e -> removeWire());
         removeComponentButton.setOnMouseClicked(e -> removeComponent(selectedRow, selectedCol));
+        controlButton.setOnMouseClicked(e -> control(selectedRow, selectedCol));
 
         List<String> gates = new ArrayList<>();
         gates.add("H");
@@ -210,6 +218,7 @@ public class CircuitState {
         }
 
         removeComponentButton.setDisable(!selectedEnabled);
+        controlButton.setDisable(!(canControl(selectedRow, selectedCol) && selectedEnabled));
 
         // Classical control
         if (selectedEnabled && lastEnabled && lastRow == selectedRow && lastCol == selectedCol &&
@@ -231,6 +240,21 @@ public class CircuitState {
         }
 
         circuitController.notifyCircuitChange();
+    }
+
+    private void control(int row, int col) {
+        components[row - 1][col] = new ControlledGate((StandardGate) components[row][col]);
+        components[row][col] = null;
+        selectedRow--;
+        selectedSpan++;
+        controlButton.setDisable(!(canControl(selectedRow, selectedCol) && selectedEnabled));
+        circuitController.notifyCircuitStateChange();
+    }
+
+    private boolean canControl(int row, int col) {
+        if (row <= 0) return false;
+        if (containsComponent(row - 1, col)) return false;
+        return true;
     }
 
     private void addComponent(int row, int col) {
@@ -281,6 +305,7 @@ public class CircuitState {
             components[row][col] = null;
             selectedEnabled = false;
             removeComponentButton.setDisable(true);
+            controlButton.setDisable(true);
             circuitController.notifyCircuitStateChange();
         }
     }
