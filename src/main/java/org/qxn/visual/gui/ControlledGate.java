@@ -11,6 +11,7 @@ public class ControlledGate extends StandardGate {
     public ControlledGate(StandardGate standardGate) {
         super(standardGate.label, new C(standardGate.getGate(), standardGate.getGate().getStartWire() - 1));
         this.originalGate = standardGate;
+        this.span = originalGate.span + 1;
     }
 
     public void draw(double x, double y, GraphicsContext graphicsContext) {

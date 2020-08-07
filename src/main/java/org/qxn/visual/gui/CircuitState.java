@@ -93,6 +93,7 @@ public class CircuitState {
         gates.add("Y");
         gates.add("Z");
         gates.add("CNOT");
+        gates.add("SWAP");
         gates.add("Measure");
         gateSelect = new ChoiceBox<>(FXCollections.observableArrayList(gates));
         gateSelect.setValue(gates.get(0));
@@ -275,6 +276,9 @@ public class CircuitState {
                 break;
             case "CNOT":
                 component = new CNOTGate(row);
+                break;
+            case "SWAP":
+                component = new SWAPGate(row);
                 break;
             case "Measure":
                 component = new QuantumMeter(row, col);

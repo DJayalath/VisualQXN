@@ -29,12 +29,17 @@
 .choice-box {
   -fx-background-color: rgba(0, 200, 0, 0.5);
   -fx-mark-color: black; // arrow color
+  -fx-focused-mark-color: transparent;
+}
+
+.choice-box .menu-item {
+    -fx-mark-color: transparent;
 }
 
 // Background color of the whole context menu
-.choice-box .context-menu { -fx-background-color: rgba(0, 200, 0, 0.3); }
+.choice-box .context-menu { -fx-background-color: rgba(100, 200, 100, 1.0); }
 // Focused item background color in the list
-.choice-box .menu-item:focused { -fx-background-color: rgba(0, 200, 0, 0.4); }
+.choice-box .menu-item:focused { -fx-background-color: rgba(100, 180, 100, 1.0); }
 // Text color of non-focused items in the list
 .choice-box .menu-item > .label { -fx-text-fill: black; }
 // Text color of focused item in the list
