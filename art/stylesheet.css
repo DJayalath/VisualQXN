@@ -10,6 +10,21 @@
     -fx-background-color: rgba(0, 200, 0, 0.3);
 }
 
+// Indicator bar buttons
+.indicator-button {
+    -fx-background-color: rgba(255, 255, 255, 1.0);
+    -fx-text-fill: rgba(0, 200, 0, 1.0);
+    -fx-font-weight: bold;
+}
+
+.indicator-button:hover {
+    -fx-background-color: rgba(230, 230, 230, 1.0);
+}
+
+.indicator-button:pressed {
+    -fx-background-color: rgba(220, 220, 220, 1.0);
+}
+
 // Background color of the control itself
 .choice-box {
   -fx-background-color: rgba(0, 200, 0, 0.5);

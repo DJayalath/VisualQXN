@@ -1,10 +1,12 @@
 package org.qxn.visual.gui;
 
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -13,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.TextAlignment;
 
 public class CircuitController {
 
@@ -43,9 +46,43 @@ public class CircuitController {
         indicatorBackground.widthProperty().bind(indicatorStack.widthProperty());
         indicatorBackground.heightProperty().bind(indicatorStack.heightProperty());
         indicatorBackground.setFill(Color.ORANGE);
+
         indicatorLabel = new Label("We good lads");
+        indicatorLabel.setTextAlignment(TextAlignment.CENTER);
+//        GridPane.setHgrow(indicatorLabel, Priority.ALWAYS);
+//        GridPane.setHalignment(indicatorLabel, HPos.CENTER);
+
+        Button settingsButton = new Button("Settings");
+        settingsButton.getStyleClass().add("indicator-button");
+        GridPane.setHgrow(settingsButton, Priority.ALWAYS);
+        GridPane.setHalignment(settingsButton, HPos.RIGHT);
+
+        HBox indicatorLeftRow = new HBox();
+        indicatorLeftRow.setSpacing(5);
+        GridPane.setHgrow(indicatorLeftRow, Priority.ALWAYS);
+        GridPane.setHalignment(indicatorLeftRow, HPos.LEFT);
+
+        Button undoButton = new Button("UNDO");
+        undoButton.getStyleClass().add("indicator-button");
+        Button redoButton = new Button("REDO");
+        redoButton.getStyleClass().add("indicator-button");
+        Button refreshButton = new Button("REFRESH");
+        refreshButton.getStyleClass().add("indicator-button");
+        indicatorLeftRow.getChildren().addAll(undoButton, redoButton, refreshButton);
+
+        GridPane indicatorRow = new GridPane();
+        indicatorRow.setPadding(new Insets(5, 10, 5, 10));
+        indicatorRow.setAlignment(Pos.CENTER_LEFT);
+        indicatorRow.prefWidthProperty().bind(indicatorStack.widthProperty());
+        indicatorRow.prefHeightProperty().bind(indicatorStack.heightProperty());
+
+        indicatorRow.add(indicatorLeftRow, 0, 0);
+        indicatorRow.add(settingsButton, 1, 0);
+
         indicatorStack.getChildren().add(indicatorBackground);
+        indicatorStack.getChildren().add(indicatorRow);
         indicatorStack.getChildren().add(indicatorLabel);
+        StackPane.setAlignment(indicatorRow, Pos.CENTER);
         StackPane.setAlignment(indicatorLabel, Pos.CENTER);
 
         canvas = new Canvas();
@@ -72,6 +109,8 @@ public class CircuitController {
         circuitPane.add(canvas, 0, 1);
         circuitPane.add(buttonBox, 0, 2);
         circuitPane.add(executor.getProbabilityChart().getBarChart(), 0, 3);
+
+        refreshButton.setOnMouseClicked(e -> notifyCircuitStateChange());
 
         notifyCircuitChange();
     }
