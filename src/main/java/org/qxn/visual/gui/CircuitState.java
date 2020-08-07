@@ -1,18 +1,20 @@
 package org.qxn.visual.gui;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.collections.FXCollections;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Pair;
 import org.qxn.gates.*;
 ;import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class CircuitState {
 
@@ -95,6 +97,10 @@ public class CircuitState {
         gates.add("CNOT");
         gates.add("SWAP");
         gates.add("Measure");
+        gates.add("R");
+        gates.add("S");
+        gates.add("T");
+        gates.add("QFT");
         gateSelect = new ChoiceBox<>(FXCollections.observableArrayList(gates));
         gateSelect.setValue(gates.get(0));
 
@@ -283,6 +289,34 @@ public class CircuitState {
             case "Measure":
                 component = new QuantumMeter(row, col);
                 break;
+            case "R":
+                try {
+                    double phi = RunRGateWizard();
+                    component = new StandardGate("R", new R(row, phi));
+                } catch (Exception e) {
+                    showErrorDialog("Failed to add R gate");
+                }
+                break;
+            case "S":
+                component = new StandardGate("S", new S(row));
+                break;
+            case "T":
+                component = new StandardGate("T", new T(row));
+                break;
+            case "QFT":
+                try {
+                    Pair<Integer, Boolean> result = RunQFTGateWizard();
+                    if (result == null)
+                        break;
+
+                    if (!result.getValue())
+                        component = new StandardGate("QFT", new QFT(row, result.getKey()));
+                    else
+                        component = new StandardGate("QFT\u2020", new QFTHA(row, result.getKey()));
+                } catch (Exception e) {
+                    showErrorDialog("Failed to add QFT gate");
+                }
+                break;
             default: break;
         }
 
@@ -301,6 +335,61 @@ public class CircuitState {
             circuitController.notifyCircuitStateChange();
         }
 
+    }
+
+    private Pair<Integer, Boolean> RunQFTGateWizard() throws Exception {
+
+        Dialog<Pair<Integer, Boolean>> dialog = new Dialog<>();
+        dialog.setTitle("Add QFT Gate");
+        dialog.setWidth(150);
+        dialog.setHeaderText(null);
+        dialog.setContentText(null);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
+        GridPane content = new GridPane();
+        content.setVgap(5);
+        content.setHgap(10);
+
+        List<String> gateSizes = new ArrayList<>();
+        for (int i = 1; i <= numWires - selectedRow; i++) {
+            gateSizes.add(String.valueOf(i));
+        }
+        ChoiceBox<String> gateSizeChoice = new ChoiceBox<>(FXCollections.observableArrayList(gateSizes));
+        gateSizeChoice.setValue(gateSizes.get(0));
+
+        CheckBox invertCheckbox = new CheckBox();
+
+        content.add(new Label("Number of inputs"), 0, 0);
+        content.add(gateSizeChoice, 1, 0);
+        content.add(new Label("Invert"), 0, 1);
+        content.add(invertCheckbox, 1, 1);
+
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return new Pair<>(Integer.valueOf(gateSizeChoice.getValue()), invertCheckbox.isSelected());
+            }
+            return null;
+        });
+
+        Optional<Pair<Integer, Boolean>> result = dialog.showAndWait();
+        return result.orElse(null);
+    }
+
+    private double RunRGateWizard() throws Exception {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setWidth(150);
+        dialog.setTitle("Add R (Phase) Gate");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Phase shift (radians):");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()){
+            return Double.parseDouble(result.get());
+        } else {
+            throw new Exception("No input");
+        }
     }
 
     private void removeComponent(int row, int col) {

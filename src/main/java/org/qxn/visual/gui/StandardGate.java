@@ -72,12 +72,14 @@ public class StandardGate extends Component {
         graphicsContext.setFill(Color.WHITE);
         graphicsContext.setStroke(Color.BLACK);
 
-        graphicsContext.fillRect(x, y, CircuitState.gateWidth, CircuitState.gateHeight);
-        graphicsContext.strokeRect(x, y, CircuitState.gateWidth, CircuitState.gateHeight);
+        double h = CircuitState.gateHeight + (span - 1) * (CircuitState.gateHeight + CircuitState.wireGap);
+
+        graphicsContext.fillRect(x, y, CircuitState.gateWidth, h);
+        graphicsContext.strokeRect(x, y, CircuitState.gateWidth, h);
 
         graphicsContext.setTextAlign(TextAlignment.CENTER);
         graphicsContext.setTextBaseline(VPos.CENTER);
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText(label, x + CircuitState.gateWidth / 2.0, y + CircuitState.gateHeight / 2.0);
+        graphicsContext.fillText(label, x + CircuitState.gateWidth / 2.0, y + h / 2.0);
     }
 }
