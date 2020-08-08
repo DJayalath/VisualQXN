@@ -1,6 +1,5 @@
 package org.qxn.visual.gui;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.collections.FXCollections;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
@@ -17,6 +16,7 @@ import org.qxn.linalg.ComplexMatrix;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CircuitState {
 
@@ -422,11 +422,13 @@ public class CircuitState {
         content.add(gateSizeChoice, 1, 0);
         content.add(new Label("Gate label"), 0, 1);
         TextField label = new TextField();
+        label.setMaxWidth(150);
         content.add(label, 1, 1);
         content.add(entryPane, 0, 2, 2, 1);
 
         dialog.getDialogPane().setContent(content);
 
+        AtomicBoolean notifyError = new AtomicBoolean(false);
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 try {
@@ -443,6 +445,7 @@ public class CircuitState {
                     }
                     return new Pair<>(label.getText(), complexMatrix);
                 } catch (Exception e) {
+                    notifyError.set(true);
                     return null;
                 }
             }
@@ -450,6 +453,10 @@ public class CircuitState {
         });
 
         Optional<Pair<String, ComplexMatrix>> result = dialog.showAndWait();
+
+        if (notifyError.get())
+            throw new Exception();
+
         return result.orElse(null);
     }
 
