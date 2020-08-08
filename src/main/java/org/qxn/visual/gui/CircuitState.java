@@ -7,10 +7,12 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Pair;
 import org.qxn.gates.*;
+import org.qxn.linalg.ComplexMatrix;
 ;import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -101,6 +103,7 @@ public class CircuitState {
         gates.add("S");
         gates.add("T");
         gates.add("QFT");
+        gates.add("Custom (Matrix)");
         gateSelect = new ChoiceBox<>(FXCollections.observableArrayList(gates));
         gateSelect.setValue(gates.get(0));
 
@@ -319,6 +322,24 @@ public class CircuitState {
                     showErrorDialog("Failed to add QFT gate");
                 }
                 break;
+            case "Custom (Matrix)":
+                try {
+                    Pair<String, ComplexMatrix> result = RunCustomMatrixWizard();
+
+                    if (result == null)
+                        break;
+
+                    Gate gate = new CustomGate(row, (int) (Math.log(result.getValue().rows) / Math.log(2)), result.getValue());
+                    if (!gate.getMatrix().isUnitary()) {
+                        showErrorDialog("Matrix is not unitary");
+                    }
+
+                    component = new StandardGate(result.getKey(), gate);
+
+                } catch (Exception e) {
+                    showErrorDialog("Failed to add custom gate");
+                }
+                break;
             default: break;
         }
 
@@ -337,6 +358,99 @@ public class CircuitState {
             circuitController.notifyState();
         }
 
+    }
+
+    private Pair<String, ComplexMatrix> RunCustomMatrixWizard() throws Exception {
+
+        Dialog<Pair<String, ComplexMatrix>> dialog = new Dialog<>();
+        dialog.setTitle("Define matrix");
+        dialog.setHeaderText(null);
+        dialog.setContentText(null);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
+        GridPane content = new GridPane();
+        content.setVgap(5);
+        content.setHgap(10);
+
+        List<String> gateSizes = new ArrayList<>();
+        for (int i = 1; i <= numWires - selectedRow; i++) {
+            gateSizes.add(String.valueOf(i));
+        }
+
+        ChoiceBox<String> gateSizeChoice = new ChoiceBox<>(FXCollections.observableArrayList(gateSizes));
+        gateSizeChoice.setValue(gateSizes.get(0));
+
+        GridPane entryPane = new GridPane();
+        entryPane.setHgap(5);
+        entryPane.setVgap(5);
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                HBox complexBox = new HBox();
+                TextField real = new TextField();
+                real.setPrefWidth(70);
+                real.setPromptText("Real");
+                TextField im = new TextField();
+                im.setPrefWidth(70);
+                im.setPromptText("Imag");
+                complexBox.getChildren().addAll(real, im);
+                entryPane.add(complexBox, j, i);
+            }
+        }
+
+        gateSizeChoice.getSelectionModel().selectedIndexProperty().addListener(((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                int dim = Integer.parseInt(gateSizeChoice.getItems().get(newValue.intValue())) << 1;
+                entryPane.getChildren().clear();
+                for (int i = 0; i < dim; i++) {
+                    for (int j = 0; j < dim; j++) {
+                        HBox complexBox = new HBox();
+                        TextField real = new TextField();
+                        real.setPrefWidth(70);
+                        real.setPromptText("Real");
+                        TextField im = new TextField();
+                        im.setPrefWidth(70);
+                        im.setPromptText("Imag");
+                        complexBox.getChildren().addAll(real, im);
+                        entryPane.add(complexBox, j, i);
+                    }
+                }
+                dialog.getDialogPane().getScene().getWindow().sizeToScene();
+            }
+        }));
+
+        content.add(new Label("Number of inputs"), 0, 0);
+        content.add(gateSizeChoice, 1, 0);
+        content.add(new Label("Gate label"), 0, 1);
+        TextField label = new TextField();
+        content.add(label, 1, 1);
+        content.add(entryPane, 0, 2, 2, 1);
+
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                try {
+                    int size = Integer.parseInt(gateSizeChoice.getValue()) << 1;
+                    ComplexMatrix complexMatrix = new ComplexMatrix(size, size);
+                    for (int i = 0; i < size; i++) {
+                        for (int j = 0; j < size; j++) {
+                            HBox complexBox = (HBox) entryPane.getChildren().get(i * size + j);
+                            TextField real = (TextField) complexBox.getChildren().get(0);
+                            TextField imag = (TextField) complexBox.getChildren().get(1);
+                            complexMatrix.data[i][j].real = Double.parseDouble(real.getText());
+                            complexMatrix.data[i][j].imaginary = Double.parseDouble(imag.getText());
+                        }
+                    }
+                    return new Pair<>(label.getText(), complexMatrix);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        Optional<Pair<String, ComplexMatrix>> result = dialog.showAndWait();
+        return result.orElse(null);
     }
 
     private Pair<Integer, Boolean> RunQFTGateWizard() throws Exception {
