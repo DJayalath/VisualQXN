@@ -146,7 +146,7 @@ public class CircuitState {
 
         this.numGates = numGates;
         resizeCanvas();
-        circuitController.notifyCircuitStateChange();
+        circuitController.notifyState();
     }
 
     private void addWire() {
@@ -180,8 +180,9 @@ public class CircuitState {
 
         this.numWires = numWires;
         resizeCanvas();
-        circuitController.notifyCircuitStateChange();
         updateButtons();
+
+        circuitController.notifyState();
     }
 
     private void resizeCanvas() {
@@ -197,7 +198,7 @@ public class CircuitState {
         hoverEnabled = isValidPosition(x, y, hoverRow, hoverCol);
 
         if (last != hoverEnabled)
-            circuitController.notifyCircuitChange();
+            circuitController.notifyCanvas();
 
     }
 
@@ -237,7 +238,7 @@ public class CircuitState {
                 StandardGate gate = (StandardGate) components[selectedRow][selectedCol];
                 QuantumMeter meter = (QuantumMeter) components[lastRow][lastCol];
                 gate.setQuantumMeter(meter);
-                circuitController.notifyCircuitStateChange();
+                circuitController.notifyState();
                 circuitController.notifyIndicatorLabelChange("We good lads");
                 circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
             }
@@ -246,7 +247,7 @@ public class CircuitState {
             circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
         }
 
-        circuitController.notifyCircuitChange();
+        circuitController.notifyCanvas();
     }
 
     private void control(int row, int col) {
@@ -255,7 +256,8 @@ public class CircuitState {
         selectedRow--;
         selectedSpan++;
         controlButton.setDisable(!(canControl(selectedRow, selectedCol) && selectedEnabled));
-        circuitController.notifyCircuitStateChange();
+
+        circuitController.notifyState();
     }
 
     private boolean canControl(int row, int col) {
@@ -332,7 +334,7 @@ public class CircuitState {
             }
 
             components[row][col] = component;
-            circuitController.notifyCircuitStateChange();
+            circuitController.notifyState();
         }
 
     }
@@ -399,7 +401,8 @@ public class CircuitState {
             selectedEnabled = false;
             removeComponentButton.setDisable(true);
             controlButton.setDisable(true);
-            circuitController.notifyCircuitStateChange();
+
+            circuitController.notifyState();
         }
     }
 
@@ -571,6 +574,7 @@ public class CircuitState {
                 newMeasurements[i] = measurements[i];
             measurements = newMeasurements;
         }
+
 
         for (int i = 0; i < numWires; i++) {
 

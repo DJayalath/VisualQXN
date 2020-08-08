@@ -110,25 +110,23 @@ public class CircuitController {
         circuitPane.add(buttonBox, 0, 2);
         circuitPane.add(executor.getProbabilityChart().getBarChart(), 0, 3);
 
-        refreshButton.setOnMouseClicked(e -> notifyCircuitStateChange());
+        refreshButton.setOnMouseClicked(e -> notifyState());
 
-        notifyCircuitChange();
+        notifyState();
     }
 
-    public void notifyCircuitChange() {
+    public void notifyState() {
+        executor.update(circuitState.getComponents(), circuitState.getNumWires(), circuitState.getNumGates());
+        notifyStep();
+    }
+
+    public void notifyCanvas() {
         circuitState.draw(graphicsContext);
     }
 
-    public void notifyCircuitStateChange() {
-        notifyCircuitChange();
-        executor.update(circuitState.getComponents(), circuitState.getNumWires(), circuitState.getNumGates());
-    }
-
-    // Draw measurements
-    public void notifyMeasurementsChange() {
-        double[] percentages = executor.getMeasurements();
-        circuitState.setMeasurements(percentages);
-        notifyCircuitChange();
+    public void notifyStep() {
+        circuitState.setMeasurements(executor.getMeasurements());
+        notifyCanvas();
     }
 
     // Draw indicator bar
