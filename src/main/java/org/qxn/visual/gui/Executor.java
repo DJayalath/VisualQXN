@@ -108,7 +108,7 @@ public class Executor {
             }
 
             quantumMachine.execute();
-            calculateProbabilitiesAndMeasurements(quantumMachine.getQubits());
+            calculateProbabilitiesAndMeasurements(quantumMachine.getQubits(), numWires);
 
         }
 
@@ -118,10 +118,9 @@ public class Executor {
         circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
     }
 
-    private void calculateProbabilitiesAndMeasurements(ComplexMatrix quantumState) {
+    private void calculateProbabilitiesAndMeasurements(ComplexMatrix quantumState, int numWires) {
 
         int numResults = quantumState.rows;
-        int numWires = quantumState.rows >> 1;
 
         // Calculate probabilities and measurements after this 'step'
         double[] p = new double[numResults];
@@ -130,11 +129,11 @@ public class Executor {
         for (int i = 0; i < numResults; i++) {
             p[i] = quantumState.data[i][0].getMagnitude2();
             for (int j = 0; j < numWires; j++) {
-                if ((i & (1 << (numWires - j - 1))) != 0) {
+                if (((i >> (numWires - j - 1)) & 1) == 1) {
                     m[j] += p[i];
                 }
             }
-        }
+        };
 
         probabilities.add(p);
         measurements.add(m);
