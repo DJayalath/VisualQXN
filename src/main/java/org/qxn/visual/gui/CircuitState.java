@@ -38,6 +38,12 @@ public class CircuitState {
 
     private final Button controlButton;
 
+    public Button getClassicalControlButton() {
+        return classicalControlButton;
+    }
+
+    private final Button classicalControlButton;
+
     private final ChoiceBox<String> gateSelect;
     private final Canvas canvas;
     private final CircuitController circuitController;
@@ -85,11 +91,14 @@ public class CircuitState {
         removeComponentButton.setDisable(true);
         controlButton = new Button("Control");
         controlButton.setDisable(true);
+        classicalControlButton = new Button("Classic Control");
+        classicalControlButton.setDisable(true);
 
         addWireButton.setOnMouseClicked(e -> addWire());
         removeWireButton.setOnMouseClicked(e -> removeWire());
         removeComponentButton.setOnMouseClicked(e -> removeComponent(selectedRow, selectedCol));
         controlButton.setOnMouseClicked(e -> control(selectedRow, selectedCol));
+        classicalControlButton.setOnMouseClicked(e -> initiateClassicControl(selectedRow, selectedCol));
 
         List<String> gates = new ArrayList<>();
         gates.add("H");
@@ -207,10 +216,6 @@ public class CircuitState {
 
     private void select(double x, double y) {
 
-        int lastRow = selectedRow;
-        int lastCol = selectedCol;
-        boolean lastEnabled = selectedEnabled;
-
         selectedEnabled = false;
 
         selectedRow = getRowFromY(y);
@@ -230,22 +235,18 @@ public class CircuitState {
 
         removeComponentButton.setDisable(!selectedEnabled);
         controlButton.setDisable(!(canControl(selectedRow, selectedCol) && selectedEnabled));
+        classicalControlButton.setDisable(!(selectedEnabled && !components[selectedRow][selectedCol].isGate()));
 
-        // Classical control
-        if (selectedEnabled && lastEnabled && lastRow == selectedRow && lastCol == selectedCol &&
-                !components[selectedRow][selectedCol].isGate()) {
-            circuitController.notifyIndicatorLabelChange("Select component to connect to measurement device");
-            circuitController.notifyIndicatorBarChange(Color.ORANGE);
-        } else if (selectedEnabled && components[selectedRow][selectedCol].isGate()) {
-            if (components[lastRow][lastCol] != null && !components[lastRow][lastCol].isGate()) {
-                StandardGate gate = (StandardGate) components[selectedRow][selectedCol];
-                QuantumMeter meter = (QuantumMeter) components[lastRow][lastCol];
-                gate.setQuantumMeter(meter);
-                circuitController.notifyState();
-                circuitController.notifyIndicatorLabelChange("We good lads");
-                circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
-            }
-        } else {
+        if (classicControlMode && canClassicalControl(selectedRow, selectedCol)) {
+            StandardGate gate = (StandardGate) components[selectedRow][selectedCol];
+            QuantumMeter meter = (QuantumMeter) components[classicRow][classicCol];
+            gate.setQuantumMeter(meter);
+            circuitController.notifyIndicatorLabelChange("We good lads");
+            circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
+            circuitController.notifyState();
+        } else if (classicControlMode) {
+            showErrorDialog("Failed to apply classical control");
+            classicControlMode = false;
             circuitController.notifyIndicatorLabelChange("We good lads");
             circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
         }
@@ -267,6 +268,22 @@ public class CircuitState {
         if (row <= 0) return false;
         if (containsComponent(row - 1, col)) return false;
         return true;
+    }
+
+    private boolean classicControlMode = false;
+    private int classicRow, classicCol;
+    private void initiateClassicControl(int row, int col) {
+        circuitController.notifyIndicatorLabelChange("Select component to connect to measurement device");
+        circuitController.notifyIndicatorBarChange(Color.ORANGE);
+        classicControlMode = true;
+        classicRow = row;
+        classicCol = col;
+    }
+
+    private boolean canClassicalControl(int row, int col) {
+        if (components[row][col] != null && components[row][col].isGate())
+            return true;
+        return false;
     }
 
     private void addComponent(int row, int col) {
@@ -645,35 +662,43 @@ public class CircuitState {
             graphicsContext.setLineWidth(1);
         }
 
-        // Draw selected overlay on component
         if (selectedEnabled) {
-            if (!components[selectedRow][selectedCol].isGate()) {
-
-                graphicsContext.setFill(Color.rgb(230, 230, 230, 0.95));
-                graphicsContext.fillRect(
-                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
-                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
-                );
-
-                graphicsContext.setStroke(Color.rgb(0, 200, 0, 0.5));
-                graphicsContext.setLineWidth(3);
-                graphicsContext.strokeLine(
-                        getXFromCol(selectedCol) + gateWidth / 2.0 - 10, getYFromRow(selectedRow) + gateHeight / 2.0,
-                        getXFromCol(selectedCol) + gateWidth / 2.0 + 10, getYFromRow(selectedRow) + gateHeight / 2.0
-                );
-                graphicsContext.strokeLine(
-                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 - 10,
-                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 + 10
-                );
-                graphicsContext.setLineWidth(1);
-            } else {
-                graphicsContext.setFill(Color.rgb(165, 137, 193, 0.4));
-                graphicsContext.fillRect(
-                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
-                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
-                );
-            }
+            graphicsContext.setFill(Color.rgb(165, 137, 193, 0.4));
+            graphicsContext.fillRect(
+                    getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
+                    gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
+            );
         }
+
+//        // Draw selected overlay on component
+//        if (selectedEnabled) {
+//            if (!components[selectedRow][selectedCol].isGate()) {
+//
+//                graphicsContext.setFill(Color.rgb(230, 230, 230, 0.95));
+//                graphicsContext.fillRect(
+//                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
+//                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
+//                );
+//
+//                graphicsContext.setStroke(Color.rgb(0, 200, 0, 0.5));
+//                graphicsContext.setLineWidth(3);
+//                graphicsContext.strokeLine(
+//                        getXFromCol(selectedCol) + gateWidth / 2.0 - 10, getYFromRow(selectedRow) + gateHeight / 2.0,
+//                        getXFromCol(selectedCol) + gateWidth / 2.0 + 10, getYFromRow(selectedRow) + gateHeight / 2.0
+//                );
+//                graphicsContext.strokeLine(
+//                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 - 10,
+//                        getXFromCol(selectedCol) + gateWidth / 2.0, getYFromRow(selectedRow) + gateHeight / 2.0 + 10
+//                );
+//                graphicsContext.setLineWidth(1);
+//            } else {
+//                graphicsContext.setFill(Color.rgb(165, 137, 193, 0.4));
+//                graphicsContext.fillRect(
+//                        getXFromCol(selectedCol), getYFromRow(selectedRow), gateWidth,
+//                        gateHeight + (selectedSpan - 1) * (gateHeight + wireGap)
+//                );
+//            }
+//        }
 
         drawMeasurements(graphicsContext);
     }
