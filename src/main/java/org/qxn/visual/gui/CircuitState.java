@@ -241,13 +241,13 @@ public class CircuitState {
             StandardGate gate = (StandardGate) components[selectedRow][selectedCol];
             QuantumMeter meter = (QuantumMeter) components[classicRow][classicCol];
             gate.setQuantumMeter(meter);
-            circuitController.notifyIndicatorLabelChange("We good lads");
+            circuitController.notifyIndicatorLabelChange("Ready");
             circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
             circuitController.notifyState();
         } else if (classicControlMode) {
             showErrorDialog("Failed to apply classical control");
             classicControlMode = false;
-            circuitController.notifyIndicatorLabelChange("We good lads");
+            circuitController.notifyIndicatorLabelChange("Ready");
             circuitController.notifyIndicatorBarChange(Color.rgb(0, 200, 0, 0.5));
         }
 

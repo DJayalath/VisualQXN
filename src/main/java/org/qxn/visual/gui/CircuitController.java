@@ -47,7 +47,7 @@ public class CircuitController {
         indicatorBackground.heightProperty().bind(indicatorStack.heightProperty());
         indicatorBackground.setFill(Color.ORANGE);
 
-        indicatorLabel = new Label("We good lads");
+        indicatorLabel = new Label("Ready");
         indicatorLabel.setTextAlignment(TextAlignment.CENTER);
 //        GridPane.setHgrow(indicatorLabel, Priority.ALWAYS);
 //        GridPane.setHalignment(indicatorLabel, HPos.CENTER);
