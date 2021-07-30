@@ -5,6 +5,8 @@
 
 [Releases](https://github.com/armytricks/VisualQXN/releases/latest) | [License](LICENSE)
 
+**UNMAINTAINED:** I no longer have the time to develop this GUI to a stable state. Use at your own risk.
+
 ![Quantum Teleportation](art/qteleport.gif)
 
 **VisualQXN** is a graphical toolkit for simulating and debugging small quantum algorithms as circuits.
